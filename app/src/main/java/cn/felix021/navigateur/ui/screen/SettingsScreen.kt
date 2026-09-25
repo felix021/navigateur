@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -319,7 +320,11 @@ private fun SiteClearDialog(
         onDismissRequest = onDismiss,
         title = { Text("按站点清理") },
         text = {
-            Column {
+            Column(
+                Modifier
+                    .heightIn(max = 380.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 androidx.compose.material3.OutlinedTextField(
                     value = host,
                     onValueChange = { host = it.trim() },
@@ -328,7 +333,7 @@ private fun SiteClearDialog(
                 )
                 if (matched.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
-                    matched.forEach { h ->
+                    matched.take(5).forEach { h ->
                         Text(
                             h,
                             modifier = Modifier

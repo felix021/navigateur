@@ -89,22 +89,33 @@ private fun readStatus(context: Context): StatusInfo {
 }
 
 /** 竖排状态条：放在横屏 cutout 安全区竖带里（时间/电量/网络）。
- *  深色底白字（cutout 竖带本身可能是白色窗口背景），文字旋转 90° 便于在窄带内阅读 */
+ *  背景/前景色由调用方按页面边缘取色传入；内容靠下排布避开中部的打孔 */
 @Composable
-fun StatusStripVertical(modifier: Modifier = Modifier) {
+fun StatusStripVertical(
+    modifier: Modifier = Modifier,
+    bgColor: Color = Color(0xF0101014),
+    fgColor: Color = Color.White,
+) {
     val info = rememberStatusInfo()
+    val timeParts = info.time.split(":")
     Column(
-        modifier.background(Color(0xF0101014)),
+        modifier
+            .background(bgColor)
+            .padding(bottom = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Bottom,
     ) {
         Text(
-            info.time,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White,
-            modifier = Modifier.graphicsLayer { rotationZ = 270f },
+            timeParts.getOrNull(0).orEmpty(),
+            style = MaterialTheme.typography.titleSmall,
+            color = fgColor,
         )
-        Spacer(Modifier.height(16.dp))
+        Text(
+            timeParts.getOrNull(1).orEmpty(),
+            style = MaterialTheme.typography.titleSmall,
+            color = fgColor,
+        )
+        Spacer(Modifier.height(14.dp))
         Text(
             buildString {
                 if (info.charging) append("⚡")
@@ -112,10 +123,9 @@ fun StatusStripVertical(modifier: Modifier = Modifier) {
                 append('%')
             },
             style = MaterialTheme.typography.labelSmall,
-            color = Color.White,
-            modifier = Modifier.graphicsLayer { rotationZ = 270f },
+            color = fgColor,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
         Icon(
             when {
                 info.wifi -> Icons.Filled.Wifi
@@ -123,7 +133,7 @@ fun StatusStripVertical(modifier: Modifier = Modifier) {
                 else -> Icons.Filled.CloudOff
             },
             contentDescription = "网络",
-            tint = Color.White,
+            tint = fgColor,
             modifier = Modifier.size(14.dp),
         )
     }
@@ -131,16 +141,20 @@ fun StatusStripVertical(modifier: Modifier = Modifier) {
 
 /** 横排半透明悬浮条：无 cutout 设备横屏全屏时的 fallback */
 @Composable
-fun StatusStripTop(modifier: Modifier = Modifier) {
+fun StatusStripTop(
+    modifier: Modifier = Modifier,
+    bgColor: Color = Color(0xD0101014),
+    fgColor: Color = Color.White,
+) {
     val info = rememberStatusInfo()
     Row(
         modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.35f))
+            .background(bgColor)
             .padding(horizontal = 14.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(info.time, style = MaterialTheme.typography.labelSmall, color = Color.White)
+        Text(info.time, style = MaterialTheme.typography.labelSmall, color = fgColor)
         Spacer(Modifier.weight(1f))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -150,7 +164,7 @@ fun StatusStripTop(modifier: Modifier = Modifier) {
                     else -> Icons.Filled.CloudOff
                 },
                 contentDescription = "网络",
-                tint = Color.White,
+                tint = fgColor,
                 modifier = Modifier.size(12.dp),
             )
             Spacer(Modifier.width(6.dp))
@@ -158,7 +172,7 @@ fun StatusStripTop(modifier: Modifier = Modifier) {
                 Icon(
                     Icons.Filled.Bolt,
                     contentDescription = "充电中",
-                    tint = Color.White,
+                    tint = fgColor,
                     modifier = Modifier.size(12.dp),
                 )
                 Spacer(Modifier.width(2.dp))
@@ -166,7 +180,7 @@ fun StatusStripTop(modifier: Modifier = Modifier) {
             Text(
                 "${info.batteryPercent ?: "–"}%",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
+                color = fgColor,
             )
         }
     }

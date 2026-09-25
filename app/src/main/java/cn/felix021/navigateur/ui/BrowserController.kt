@@ -31,6 +31,50 @@ class BrowserController(val activity: MainActivity) {
     /** 浏览页按返回且无页面历史时，先询问再退出 */
     val exitConfirm = mutableStateOf(false)
 
+    /** 页面边缘平均色（ARGB），供自绘状态条配色；null = 未取到用默认深色 */
+    val edgeColor = mutableStateOf<Int?>(null)
+
+    /** 用 PixelCopy 抓窗口在 stripLeftPx 处的竖条平均色（页面左缘） */
+    fun refreshEdgeColor(stripLeftPx: Int) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) return
+        val decor = activity.window.decorView // 仅用于取宽高
+        val h = decor.height
+        val w = 12
+        val x = stripLeftPx.coerceIn(0, (decor.width - w).coerceAtLeast(0))
+        if (h <= 0 || decor.width < w) return
+        val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+        try {
+            val listener = android.view.PixelCopy.OnPixelCopyFinishedListener { result ->
+                if (result == android.view.PixelCopy.SUCCESS) {
+                    var r = 0L; var g = 0L; var b = 0L; var n = 0L
+                    for (y in 0 until h step 24) {
+                        for (xx in 0 until w step 6) {
+                            val c = bmp.getPixel(xx, y)
+                            r += (c shr 16) and 0xFF
+                            g += (c shr 8) and 0xFF
+                            b += c and 0xFF
+                            n++
+                        }
+                    }
+                    if (n > 0) {
+                        edgeColor.value =
+                            (0xFF shl 24) or ((r / n).toInt() shl 16) or ((g / n).toInt() shl 8) or (b / n).toInt()
+                    }
+                }
+                bmp.recycle()
+            }
+            android.view.PixelCopy.request(
+                activity.window,
+                android.graphics.Rect(x, 0, x + w, h),
+                bmp,
+                listener,
+                android.os.Handler(android.os.Looper.getMainLooper()),
+            )
+        } catch (e: Exception) {
+            bmp.recycle()
+        }
+    }
+
     fun exitApp() {
         activity.finish()
     }

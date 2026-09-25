@@ -76,7 +76,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -156,10 +158,28 @@ fun BrowserScreen(controller: BrowserController) {
         )
     }
 
+    // 横屏全屏时按页面左缘取色（PixelCopy），自绘状态条用它配色
+    val density = LocalDensity.current
+    val cutLeft = WindowInsets.displayCutout.getLeft(density, LayoutDirection.Ltr)
+    LaunchedEffect(isLandscape, current?.url, settings.themeMode, settings.landscapeFullscreen) {
+        if (isLandscape && settings.landscapeFullscreen) {
+            kotlinx.coroutines.delay(700)
+            controller.refreshEdgeColor(cutLeft.coerceAtLeast(0))
+        }
+    }
+    val edge = controller.edgeColor.value
+    val statusBg = edge?.let { Color(it) } ?: Color(0xF0101014)
+    val statusFg = if ((edge?.let { Color(it).luminance() } ?: 0f) > 0.6f) {
+        Color(0xE6101010)
+    } else {
+        Color.White
+    }
+
     if (isLandscape) {
         LandscapeBrowser(
             controller, current, bookmarked, nav, tabs.size,
             settings.landscapeToolbarSide, settings.landscapeFullscreen,
+            statusBg, statusFg,
         )
     } else {
         PortraitBrowser(controller, current, bookmarked, nav, tabs.size)
@@ -210,6 +230,8 @@ private fun LandscapeBrowser(
     tabCount: Int,
     toolbarSide: String,
     fullscreen: Boolean,
+    statusBg: Color,
+    statusFg: Color,
 ) {
     var urlPanelOpen by remember { mutableStateOf(false) }
     var certOpen by remember { mutableStateOf(false) }
@@ -312,15 +334,23 @@ private fun LandscapeBrowser(
                     Modifier
                         .align(Alignment.CenterStart)
                         .fillMaxHeight()
-                        .width(with(density) { cutLeft.toDp() })
+                        .width(with(density) { cutLeft.toDp() }),
+                    bgColor = statusBg,
+                    fgColor = statusFg,
                 )
                 cutRight >= CUTOUT_STRIP_MIN_PX -> StatusStripVertical(
                     Modifier
                         .align(Alignment.CenterEnd)
                         .fillMaxHeight()
-                        .width(with(density) { cutRight.toDp() })
+                        .width(with(density) { cutRight.toDp() }),
+                    bgColor = statusBg,
+                    fgColor = statusFg,
                 )
-                else -> StatusStripTop(Modifier.align(Alignment.TopCenter))
+                else -> StatusStripTop(
+                    Modifier.align(Alignment.TopCenter),
+                    bgColor = statusBg,
+                    fgColor = statusFg,
+                )
             }
         }
     }
