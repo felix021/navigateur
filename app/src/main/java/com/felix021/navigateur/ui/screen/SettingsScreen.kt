@@ -181,6 +181,21 @@ fun SettingsScreen(controller: BrowserController) {
                 else "${settings.adBlockAllowlist.size} 个站点不拦截",
             ) { showAdAllow = true }
 
+            SectionHeader("开发者")
+            SwitchItem(
+                title = "远程调试（chrome://inspect / CDP）",
+                subtitle = "默认关闭。开启后电脑经 adb 可用完整 Chrome DevTools 检查页面；" +
+                    "也可用命令行开关：am start --ez remote_debug true",
+                checked = settings.remoteDebug,
+                onChange = { enabled -> update { it.copy(remoteDebug = enabled) } },
+            )
+            SwitchItem(
+                title = "页面内开发者工具（eruda）",
+                subtitle = "手机上直接查看 Console / Elements / Network / Storage",
+                checked = settings.devTools,
+                onChange = { enabled -> update { it.copy(devTools = enabled) } },
+            )
+
             SectionHeader("隐私")
             SettingItem(
                 title = "清理浏览数据",

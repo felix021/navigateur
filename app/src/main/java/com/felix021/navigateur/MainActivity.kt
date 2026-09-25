@@ -39,10 +39,31 @@ class MainActivity : AppCompatActivity() {
             window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        // 方便 chrome://inspect 调试页面（个人应用，保持开启）
-        WebView.setWebContentsDebuggingEnabled(true)
         controller = BrowserController(this)
+        applyDebugIntent(intent)
         setContent { AppRoot(controller) }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        applyDebugIntent(intent)
+    }
+
+    /** adb 调试入口：am start ... --ez remote_debug/--ez dev_tools true|false，免手动进设置切换 */
+    private fun applyDebugIntent(i: android.content.Intent?) {
+        i ?: return
+        if (i.hasExtra("remote_debug")) {
+            val on = i.getBooleanExtra("remote_debug", false)
+            if (on != controller.container.settings.current.remoteDebug) {
+                controller.container.settings.update { it.copy(remoteDebug = on) }
+            }
+        }
+        if (i.hasExtra("dev_tools")) {
+            val on = i.getBooleanExtra("dev_tools", false)
+            if (on != controller.container.settings.current.devTools) {
+                controller.container.settings.update { it.copy(devTools = on) }
+            }
+        }
     }
 
     override fun onPause() {

@@ -31,6 +31,10 @@ data class BrowserSettings(
     val adBlockEnabled: Boolean = true,
     /** 广告拦截站点白名单（host，在这些站点完全不拦截） */
     val adBlockAllowlist: Set<String> = emptySet(),
+    /** 远程调试（chrome://inspect / CDP）：默认关，需要时打开（安全纵深，socket 仅 adb 可达） */
+    val remoteDebug: Boolean = false,
+    /** 页面内开发者工具（eruda：Console/Elements/Network 等） */
+    val devTools: Boolean = false,
 )
 
 class SettingsRepository(context: Context) {
@@ -74,6 +78,8 @@ class SettingsRepository(context: Context) {
         adBlockEnabled = prefs.getBoolean(KEY_ADBLOCK, true),
         adBlockAllowlist = prefs.getString(KEY_ADBLOCK_ALLOW, "")!!.split(',')
             .filter { it.isNotBlank() }.toSet(),
+        remoteDebug = prefs.getBoolean(KEY_REMOTE_DEBUG, false),
+        devTools = prefs.getBoolean(KEY_DEVTOOLS, false),
     )
 
     private fun persist(s: BrowserSettings) {
@@ -92,6 +98,8 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_LAND_BOTTOM, s.landscapeBottomSafeArea)
             .putBoolean(KEY_ADBLOCK, s.adBlockEnabled)
             .putString(KEY_ADBLOCK_ALLOW, s.adBlockAllowlist.sorted().joinToString(","))
+            .putBoolean(KEY_REMOTE_DEBUG, s.remoteDebug)
+            .putBoolean(KEY_DEVTOOLS, s.devTools)
             .commit() // commit 而非 apply：StringSet/apply 在部分 ROM 上不落盘，设置丢失
     }
 
@@ -127,5 +135,7 @@ class SettingsRepository(context: Context) {
         const val KEY_LAND_BOTTOM = "landscape_bottom_safe"
         const val KEY_ADBLOCK = "adblock_enabled"
         const val KEY_ADBLOCK_ALLOW = "adblock_allowlist"
+        const val KEY_REMOTE_DEBUG = "remote_debug"
+        const val KEY_DEVTOOLS = "devtools"
     }
 }

@@ -48,6 +48,29 @@ class TabManager(
     private var lastAppliedDark: Boolean? = null
     private var lastAppliedZoom: Int? = null
     private var lastAppliedAd: String? = null
+    private var lastAppliedDev: Boolean? = null
+    private var lastAppliedRemote: Boolean? = null
+    private var erudaJs: String? = null
+
+    /** 页面内开发者工具：注入（幂等）/ 移除 eruda */
+    private fun injectDevTools(wv: WebView, enabled: Boolean) {
+        if (enabled) {
+            val src = erudaJs ?: runCatching {
+                context.assets.open("devtools/eruda.min.js").bufferedReader().readText()
+            }.getOrNull()?.also { erudaJs = it } ?: return
+            wv.evaluateJavascript(
+                // 换行必不可少：eruda.min.js 以 //# sourceMappingURL 行注释结尾，
+                // 不换行会把后面的 init 调用一起注释掉
+                "(function(){if(window.__nvEruda)return;\n" + src + "\n;eruda.init();window.__nvEruda=1;})();",
+                null,
+            )
+        } else {
+            wv.evaluateJavascript(
+                "(function(){try{if(window.__nvEruda){window.eruda.destroy();window.__nvEruda=0}}catch(e){}})();",
+                null,
+            )
+        }
+    }
 
     /** 当前标签页面 host 的缓存（主线程写、请求线程读，供 shouldInterceptRequest 白名单判断） */
     @Volatile
@@ -294,6 +317,7 @@ class TabManager(
         wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
         // 广告元素隐藏（请求拦截在 WebViewClient.shouldInterceptRequest）
         injectAdHide(wv, url)
+        if (s.devTools) injectDevTools(wv, true)
         // 桌面模式标签：覆盖 viewport 为宽屏，让响应式站点出桌面布局
         if (tabOf(wv)?.desktopMode == true) {
             wv.evaluateJavascript(JsScripts.DESKTOP_VIEWPORT, null)
@@ -377,10 +401,15 @@ class TabManager(
         val darkChanged = lastAppliedDark != null && dark != lastAppliedDark
         val zoomChanged = lastAppliedZoom != null && s.pageZoomPercent != lastAppliedZoom
         val adChanged = lastAppliedAd != null && s.adBlockKey() != lastAppliedAd
+        val devChanged = lastAppliedDev != null && s.devTools != lastAppliedDev
+        val remoteChanged = s.remoteDebug != lastAppliedRemote // 首次也同步（null != 值）
         lastAppliedUa = uaKey
         lastAppliedDark = dark
         lastAppliedZoom = s.pageZoomPercent
         lastAppliedAd = s.adBlockKey()
+        lastAppliedDev = s.devTools
+        lastAppliedRemote = s.remoteDebug
+        if (remoteChanged) WebView.setWebContentsDebuggingEnabled(s.remoteDebug)
         if (webViews.isEmpty()) return
         webViews.values.forEach { wv ->
             WebViewFactory.applyLiveSettings(wv, s)
@@ -394,6 +423,7 @@ class TabManager(
                 val tab = tabOf(wv)
                 if (tab != null && !UrlUtils.isHome(tab.url)) injectAdHide(wv, tab.url)
             }
+            if (devChanged) injectDevTools(wv, s.devTools)
             val tab = tabOf(wv)
             if (uaChanged) {
                 WebViewFactory.applyUserAgent(context, wv, s, tab?.desktopMode == true)
