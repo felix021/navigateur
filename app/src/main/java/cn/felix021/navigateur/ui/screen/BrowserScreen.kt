@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,10 +78,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
@@ -87,6 +92,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import cn.felix021.navigateur.browser.TabState
 import cn.felix021.navigateur.ui.BrowserController
+import cn.felix021.navigateur.ui.component.StatusStripTop
+import cn.felix021.navigateur.ui.component.StatusStripVertical
 import cn.felix021.navigateur.ui.Screen
 import cn.felix021.navigateur.util.UrlUtils
 import java.util.Date
@@ -131,7 +138,10 @@ fun BrowserScreen(controller: BrowserController) {
     }
 
     if (isLandscape) {
-        LandscapeBrowser(controller, current, bookmarked, nav, tabs.size, settings.landscapeToolbarSide)
+        LandscapeBrowser(
+            controller, current, bookmarked, nav, tabs.size,
+            settings.landscapeToolbarSide, settings.landscapeFullscreen,
+        )
     } else {
         PortraitBrowser(controller, current, bookmarked, nav, tabs.size)
     }
@@ -180,6 +190,7 @@ private fun LandscapeBrowser(
     nav: Pair<Boolean, Boolean>,
     tabCount: Int,
     toolbarSide: String,
+    fullscreen: Boolean,
 ) {
     var urlPanelOpen by remember { mutableStateOf(false) }
     var certOpen by remember { mutableStateOf(false) }
@@ -191,12 +202,15 @@ private fun LandscapeBrowser(
         CertificateDialog(controller, onDismiss = { certOpen = false })
     }
 
-    Row(
-        Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
+    Box(Modifier.fillMaxSize()) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                // 打孔屏：内容与工具条避开左右 cutout 竖带
+                .windowInsetsPadding(WindowInsets.displayCutout)
+        ) {
         val content = @Composable {
             Box(Modifier.weight(1f).fillMaxHeight()) {
                 BrowserContent(controller, current)
@@ -267,8 +281,34 @@ private fun LandscapeBrowser(
             content()
             toolbar()
         }
+        }
+
+        // 全屏时把状态信息画进 cutout 竖带（打孔屏的左右安全区），无 cutout 则顶部悬浮
+        if (fullscreen) {
+            val density = LocalDensity.current
+            val cutLeft = WindowInsets.displayCutout.getLeft(density, LayoutDirection.Ltr)
+            val cutRight = WindowInsets.displayCutout.getRight(density, LayoutDirection.Ltr)
+            when {
+                cutLeft >= CUTOUT_STRIP_MIN_PX -> StatusStripVertical(
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .fillMaxHeight()
+                        .width(with(density) { cutLeft.toDp() })
+                )
+                cutRight >= CUTOUT_STRIP_MIN_PX -> StatusStripVertical(
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(with(density) { cutRight.toDp() })
+                )
+                else -> StatusStripTop(Modifier.align(Alignment.TopCenter))
+            }
+        }
     }
 }
+
+/** cutout 竖带至少这么宽（px 级别换算前）才放状态条，避免窄边硬塞 */
+private const val CUTOUT_STRIP_MIN_PX = 40
 
 /** 横屏侧边工具条 */
 @Composable

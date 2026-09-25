@@ -166,7 +166,11 @@ class TabManager(
                 (child as? WebView)?.onPause()
             }
         }
-        if (wv.parent == null) {
+        // 注意：横竖屏切换会重建容器（AndroidView factory），WebView 可能还挂在旧容器上，
+        // 必须比较 parent 是否为当前容器，否则页面白屏
+        val parent = wv.parent
+        if (parent !== c) {
+            (parent as? android.view.ViewGroup)?.removeView(wv)
             c.addView(wv, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT,
