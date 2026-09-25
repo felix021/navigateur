@@ -1,0 +1,99 @@
+package cn.felix021.navigateur.data
+
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+enum class ThemeMode { FOLLOW_SYSTEM, LIGHT, DARK }
+
+data class BrowserSettings(
+    val homepage: String = "about:home",
+    val searchEngineId: String = "duckduckgo",
+    val desktopModeDefault: Boolean = false,
+    val customUserAgent: String = "",
+    /** 空 = 跟随网站；否则为 CSS font-family 值（sans-serif / serif / monospace） */
+    val fontFamily: String = "",
+    val textZoomPercent: Int = 100,
+    val themeMode: ThemeMode = ThemeMode.FOLLOW_SYSTEM,
+    val savePasswords: Boolean = true,
+)
+
+class SettingsRepository(context: Context) {
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    private val _settings = MutableStateFlow(read())
+    val settings: StateFlow<BrowserSettings> = _settings
+
+    /** 当前设置的便捷读取 */
+    val current: BrowserSettings get() = _settings.value
+
+    init {
+        applyNightMode(_settings.value.themeMode)
+    }
+
+    fun update(transform: (BrowserSettings) -> BrowserSettings) {
+        val prev = _settings.value
+        val next = transform(prev)
+        if (next == prev) return
+        persist(next)
+        _settings.value = next
+        if (next.themeMode != prev.themeMode) applyNightMode(next.themeMode)
+    }
+
+    private fun read(): BrowserSettings = BrowserSettings(
+        homepage = prefs.getString(KEY_HOME, "about:home") ?: "about:home",
+        searchEngineId = prefs.getString(KEY_ENGINE, "duckduckgo") ?: "duckduckgo",
+        desktopModeDefault = prefs.getBoolean(KEY_DESKTOP, false),
+        customUserAgent = prefs.getString(KEY_UA, "") ?: "",
+        fontFamily = prefs.getString(KEY_FONT, "") ?: "",
+        textZoomPercent = prefs.getInt(KEY_ZOOM, 100).coerceIn(50, 200),
+        themeMode = runCatching {
+            ThemeMode.valueOf(prefs.getString(KEY_THEME, ThemeMode.FOLLOW_SYSTEM.name)!!)
+        }.getOrDefault(ThemeMode.FOLLOW_SYSTEM),
+        savePasswords = prefs.getBoolean(KEY_SAVEPW, true),
+    )
+
+    private fun persist(s: BrowserSettings) {
+        prefs.edit()
+            .putString(KEY_HOME, s.homepage)
+            .putString(KEY_ENGINE, s.searchEngineId)
+            .putBoolean(KEY_DESKTOP, s.desktopModeDefault)
+            .putString(KEY_UA, s.customUserAgent)
+            .putString(KEY_FONT, s.fontFamily)
+            .putInt(KEY_ZOOM, s.textZoomPercent)
+            .putString(KEY_THEME, s.themeMode.name)
+            .putBoolean(KEY_SAVEPW, s.savePasswords)
+            .apply()
+    }
+
+    /** WebView 网页暗色依赖 Activity 资源处于 night 模式，这里同步 AppCompat 的全局夜间模式 */
+    private fun applyNightMode(mode: ThemeMode) {
+        if (LooperCheck.notMain()) return
+        AppCompatDelegate.setDefaultNightMode(
+            when (mode) {
+                ThemeMode.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+                ThemeMode.DARK -> AppCompatDelegate.MODE_NIGHT_YES
+                ThemeMode.FOLLOW_SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+        )
+    }
+
+    private object LooperCheck {
+        fun notMain(): Boolean =
+            android.os.Looper.myLooper() != android.os.Looper.getMainLooper()
+    }
+
+    private companion object {
+        const val KEY_HOME = "homepage"
+        const val KEY_ENGINE = "search_engine"
+        const val KEY_DESKTOP = "desktop_default"
+        const val KEY_UA = "custom_ua"
+        const val KEY_FONT = "font_family"
+        const val KEY_ZOOM = "text_zoom"
+        const val KEY_THEME = "theme_mode"
+        const val KEY_SAVEPW = "save_passwords"
+    }
+}
