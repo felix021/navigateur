@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "cn.felix021.navigateur"
+    namespace = "com.felix021.navigateur"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "cn.felix021.navigateur"
+        applicationId = "com.felix021.navigateur"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -19,6 +19,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // 个人应用：release 用 debug 签名，便于直接分发安装
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

@@ -17,13 +17,12 @@
 ## 构建
 
 ```bash
-./gradlew clean assembleDebug --no-daemon
-# 产物: app/build/outputs/apk/debug/app-debug.apk
+./gradlew clean assembleDebug   # 调试包
+./gradlew clean assembleRelease # 发布包（debug 签名，个人分发用）
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-> 本机（PVE）注意事项：Gradle daemon 的增量构建不可靠（源码变更可能被误判
-> UP-TO-DATE），务必 `clean` + `--no-daemon` 构建。
+> 提示：如遇增量构建产物不更新（部分虚拟机环境存在该问题），加 `clean` 全量构建。
 
 ## 已知限制（v1）
 
