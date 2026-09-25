@@ -44,4 +44,17 @@ class BrowserChromeClient(
             .show()
         return true
     }
+
+    /** window.open / target=_blank：新开标签承载 */
+    override fun onCreateWindow(
+        view: WebView?,
+        isDialog: Boolean,
+        isUserGesture: Boolean,
+        resultMsg: android.os.Message?,
+    ): Boolean = resultMsg?.let { tm.handleCreateWindow(tabId, it) } ?: false
+
+    /** window.close()：关闭对应标签 */
+    override fun onCloseWindow(window: WebView?) {
+        window?.let { tm.closeWindow(it) }
+    }
 }

@@ -8,30 +8,95 @@ object JsScripts {
     /** 登录表单捕获：submit 事件 + 回车兜底；单密码框且非 new-password 才上报 */
     val CAPTURE_HOOK = """
         (function () {
-          if (window.__nvHooked) return; window.__nvHooked = true;
-          function collect(f) {
-            try {
-              var pws = f.querySelectorAll('input[type=password]');
-              if (pws.length !== 1) return null;
-              var pw = pws[0];
-              if (!pw.value || pw.autocomplete === 'new-password') return null;
-              var u = f.querySelector('input[autocomplete=username i], input[type=email], ' +
-                'input[name*=user i], input[name*=mail i], input[name*=login i], input[name*=account i], ' +
-                'input[type=tel], input[type=text]');
-              return { username: u ? u.value : '', password: pw.value };
-            } catch (e) { return null; }
+          function install(doc) {
+            var w = doc.defaultView;
+            if (!w || w.__nvHooked) return;
+            w.__nvHooked = true;
+            function collect(scope) {
+              try {
+                var pws = scope.querySelectorAll('input[type=password]');
+                if (pws.length !== 1) return null;
+                var pw = pws[0];
+                if (!pw.value || pw.autocomplete === 'new-password') return null;
+                var u = scope.querySelector('input[autocomplete=username i], input[type=email], ' +
+                  'input[name*=user i], input[name*=mail i], input[name*=login i], input[name*=account i], ' +
+                  'input[type=tel], input[type=text]');
+                return { username: u ? u.value : '', password: pw.value };
+              } catch (e) { return null; }
+            }
+            function report(scope) {
+              try {
+                var d = collect(scope);
+                if (d && d.password.length >= 1) NavigateurBridge.onCredentials(JSON.stringify(d));
+              } catch (e) {}
+            }
+            doc.addEventListener('submit', function (e) { report(e.target || doc); }, true);
+            doc.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter') setTimeout(function () {
+                var f = (e.target && e.target.form) ? e.target.form : doc;
+                report(f);
+              }, 300);
+            }, true);
+            // fetch/XHR 登录兜底：点击按钮/提交类元素后延时读一次密码框（无 form 的页面也覆盖）
+            doc.addEventListener('click', function (e) {
+              var t = e.target;
+              var b = t && t.closest ? t.closest('button, input[type=submit], input[type=button], [role=button]') : null;
+              if (b) setTimeout(function () {
+                var f = b.closest ? (b.closest('form') || doc) : doc;
+                report(f);
+              }, 500);
+            }, true);
           }
-          function report(f) {
+          function hookFrames(doc) {
             try {
-              var d = collect(f);
-              if (d && d.password.length >= 1) NavigateurBridge.onCredentials(JSON.stringify(d));
+              var list = doc.querySelectorAll('iframe');
+              for (var i = 0; i < list.length; i++) {
+                try { install(list[i].contentDocument); } catch (e) {}
+              }
             } catch (e) {}
           }
-          document.addEventListener('submit', function (e) { report(e.target); }, true);
-          document.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && e.target && e.target.form)
-              setTimeout(function () { report(e.target.form); }, 300);
+          install(document);
+          hookFrames(document);
+          // iframe 后加载：延时再挂一次（幂等）
+          setTimeout(function () { hookFrames(document); }, 1200);
+        })();
+    """.trimIndent()
+
+    /**
+     * 下载链接拦截：新版 WebView（15x）不再回调 onDownloadStart，
+     * 页面层直接捕获常见下载链接交原生处理；扩展名或 download 属性判定。
+     */
+    val DOWNLOAD_INTERCEPT = """
+        (function () {
+          if (window.__nvDlHooked) return;
+          window.__nvDlHooked = true;
+          var EXT = /\.(zip|rar|7z|apk|exe|dmg|msi|pdf|tar|gz|tgz|bz2|xz|iso|mp3|flac|wav|mp4|avi|mkv|mov|epub|mobi|torrent|doc|docx|xls|xlsx|ppt|pptx|csv)$/i;
+          document.addEventListener('click', function (e) {
+            try {
+              var t = e.target;
+              var a = t && t.closest ? t.closest('a[href]') : null;
+              if (!a) return;
+              var url = a.href || '';
+              if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) return;
+              if (!a.hasAttribute('download') && !EXT.test(a.pathname || '')) return;
+              e.preventDefault();
+              e.stopPropagation();
+              NavigateurBridge.download(url);
+            } catch (err) {}
           }, true);
+        })();
+    """.trimIndent()
+
+    /** 桌面模式：强制宽视口，避免响应式站点按手机宽度出移动布局 */
+    val DESKTOP_VIEWPORT = """
+        (function () {
+          var m = document.querySelector('meta[name=viewport]');
+          if (!m) {
+            m = document.createElement('meta');
+            m.setAttribute('name', 'viewport');
+            (document.head || document.documentElement).appendChild(m);
+          }
+          m.setAttribute('content', 'width=1280, initial-scale=1');
         })();
     """.trimIndent()
 

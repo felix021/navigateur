@@ -34,6 +34,7 @@ class BrowserWebViewClient(
         tm.updateState(tabId) { it.copy(url = url, loading = true, progress = 0, error = null) }
         // 捕获 hook 尽早注入，不依赖 onPageFinished（幂等）
         tm.injectCaptureHook(view)
+        view.evaluateJavascript(JsScripts.DOWNLOAD_INTERCEPT, null)
         tm.refreshNav()
         tm.persist()
     }
@@ -57,6 +58,7 @@ class BrowserWebViewClient(
         if (url == null || skip(url) || UrlUtils.isHome(url)) return
         // 每次导航必然回调：在此兜底注入捕获 hook（幂等，SPA 场景也覆盖）
         tm.injectCaptureHook(view)
+        view.evaluateJavascript(JsScripts.DOWNLOAD_INTERCEPT, null)
         tm.recordHistory(tabId, url)
         tm.updateState(tabId) { if (it.url != url) it.copy(url = url) else it }
         tm.refreshNav()

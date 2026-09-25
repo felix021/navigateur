@@ -26,7 +26,8 @@ object WebViewFactory {
         ws.allowFileAccess = false
         ws.allowContentAccess = false
         ws.javaScriptCanOpenWindowsAutomatically = true
-        ws.setSupportMultipleWindows(false)
+        // 支持 window.open / target=_blank 经 onCreateWindow 开新标签
+        ws.setSupportMultipleWindows(true)
         if (Build.VERSION.SDK_INT >= 26) ws.safeBrowsingEnabled = true
 
         // 桌面/移动模式：UA 是唯一实质开关，两种模式下 viewport 都交给页面

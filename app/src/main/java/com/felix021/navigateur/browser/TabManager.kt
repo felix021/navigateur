@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.felix021.navigateur.AppContainer
 import com.felix021.navigateur.data.BrowserSettings
 import com.felix021.navigateur.data.ThemeMode
+import com.felix021.navigateur.util.Downloader
 import com.felix021.navigateur.util.UrlUtils
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -130,6 +131,11 @@ class TabManager(
         wv.webViewClient = BrowserWebViewClient(this, state.id)
         wv.webChromeClient = BrowserChromeClient(this, state.id)
         wv.addJavascriptInterface(NativeBridge(state.id, this), "NavigateurBridge")
+        wv.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            Downloader.start(
+                context, url, userAgent, contentDisposition, mimeType,
+            )
+        }
         webViews[state.id] = wv
         return wv
     }
@@ -253,11 +259,24 @@ class TabManager(
         handler.post { onCredentials(host, user, pass) }
     }
 
+    /** JS 桥下载：走系统 DownloadManager（Cookie/UA 在 Downloader 内处理） */
+    fun postDownload(url: String) {
+        handler.post {
+            val wv = currentWebView ?: return@post
+            Downloader.start(context, url, wv.settings.userAgentString, null, null)
+        }
+    }
+
     fun injectForPage(tabId: String, wv: WebView, url: String) {
         val s = container.settings.current
         wv.evaluateJavascript(JsScripts.fontCss(s.fontFamily), null)
         wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
+        // 桌面模式标签：覆盖 viewport 为宽屏，让响应式站点出桌面布局
+        if (tabOf(wv)?.desktopMode == true) {
+            wv.evaluateJavascript(JsScripts.DESKTOP_VIEWPORT, null)
+        }
         injectCaptureHook(wv)
+        wv.evaluateJavascript(JsScripts.DOWNLOAD_INTERCEPT, null)
         if (url.startsWith("https://")) {
             val host = UrlUtils.hostOf(url)
             if (host.isNotEmpty()) {
@@ -279,6 +298,31 @@ class TabManager(
         if (UrlUtils.isHome(url)) return
         val title = _tabs.value.firstOrNull { it.id == tabId }?.title.orEmpty()
         container.history.add(url, title)
+    }
+
+    /** target=_blank / window.open：建新标签并把 WebView 交给 transport */
+    fun handleCreateWindow(sourceTabId: String, resultMsg: android.os.Message): Boolean {
+        val transport = resultMsg.obj as? WebView.WebViewTransport ?: return false
+        val srcTab = _tabs.value.firstOrNull { it.id == sourceTabId }
+        val state = TabState(
+            id = UUID.randomUUID().toString(),
+            url = "",
+            title = "",
+            desktopMode = srcTab?.desktopMode ?: container.settings.current.desktopModeDefault,
+        )
+        val wv = createWebView(state)
+        _tabs.value = _tabs.value + state
+        _currentId.value = state.id
+        transport.webView = wv
+        resultMsg.sendToTarget()
+        syncWebView()
+        persist()
+        return true
+    }
+
+    /** window.close() 对应的标签关闭 */
+    fun closeWindow(wv: WebView) {
+        (wv.tag as? String)?.let { closeTab(it) }
     }
 
     fun onRenderGone(tabId: String) {

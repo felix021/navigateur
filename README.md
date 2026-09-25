@@ -10,8 +10,9 @@
 - **桌面/移动模式**：菜单快捷切换（改 UA 后刷新），设置里可设默认 + 自定义 UA
 - **字号/字体**：textZoom 50–200% 即时生效；字体（无衬线/衬线/等宽）CSS 注入
 - **亮/暗主题**：跟随系统/亮色/暗色，网页内容走 algorithmic darkening
-- **密码记录**：登录表单捕获 → 询问保存（Android Keystore AES-256-GCM 加密落盘）→ 自动填充
+- **密码记录**：登录表单捕获（含无 form 的 fetch/XHR 登录、同域 iframe）→ 询问保存（Android Keystore AES-256-GCM 加密落盘）→ 自动填充
 - **清理数据**：Cookie / 站点存储（localStorage 等）/ 缓存 / 表单数据 / 已保存密码
+- **下载**：系统 DownloadManager 接管，落公共下载目录、通知栏进度；页面内常见下载链接与地址栏直输文件 URL 均可
 - **搜索引擎**：DDG / Google / Bing / 百度
 
 ## 构建
@@ -24,9 +25,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 > 提示：如遇增量构建产物不更新（部分虚拟机环境存在该问题），加 `clean` 全量构建。
 
-## 已知限制（v1）
+## 已知限制
 
-- fetch/XHR 方式提交的登录、跨域 iframe 表单、passkey 无法捕获
-- `target=_blank` 链接在当前标签打开
-- 无下载管理、无图片/资源拦截
-- 桌面模式仅切换 UA + 视口，个别站点仍按屏幕宽度出移动版
+- 跨域 iframe 表单、passkey 登录无法捕获
+- 下载：无扩展名且无 `download` 属性的重定向下载链接（个别网盘）可能不触发；
+  新版 WebView（15x）已不回调 `onDownloadStart`，靠页面层拦截兜底
+- 无图片/资源拦截（不做广告过滤）

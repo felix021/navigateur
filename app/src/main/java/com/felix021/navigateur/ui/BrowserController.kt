@@ -97,7 +97,11 @@ class BrowserController(val activity: MainActivity) {
 
     fun loadOrSearch(input: String) {
         val url = UrlUtils.normalize(input, container.settings.current.searchEngineId)
-        if (url.isNotEmpty()) tabManager.loadInCurrent(url)
+        if (url.isNotEmpty()) {
+            // 地址栏直输下载文件 URL：直接走系统下载（新版 WebView 导航下载不可靠）
+            if (UrlUtils.isDownloadLike(url)) tabManager.postDownload(url)
+            else tabManager.loadInCurrent(url)
+        }
         screen.value = Screen.Browser
     }
 

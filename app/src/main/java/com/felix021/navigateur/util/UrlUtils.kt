@@ -9,6 +9,18 @@ object UrlUtils {
     /** 内置起始页标记 URL */
     const val HOME = "about:home"
 
+    /** 常见下载文件扩展名（与页面层 DOWNLOAD_INTERCEPT 保持一致） */
+    private val DOWNLOAD_EXT = Regex(
+        "\\.(zip|rar|7z|apk|exe|dmg|msi|pdf|tar|gz|tgz|bz2|xz|iso|mp3|flac|wav|mp4|avi|mkv|mov|epub|mobi|torrent|doc|docx|xls|xlsx|ppt|pptx|csv)$",
+        RegexOption.IGNORE_CASE,
+    )
+
+    fun isDownloadLike(url: String): Boolean = try {
+        DOWNLOAD_EXT.containsMatchIn(Uri.parse(url).path.orEmpty())
+    } catch (e: Exception) {
+        false
+    }
+
     fun isHome(url: String?): Boolean = url == HOME
 
     fun pretty(url: String): String =

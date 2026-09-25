@@ -84,7 +84,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -589,7 +591,7 @@ private fun Omnibox(
     onSubmit: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var value by remember { mutableStateOf("") }
+    var value by remember { mutableStateOf(TextFieldValue("")) }
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val focusManager = LocalFocusManager.current
@@ -597,12 +599,20 @@ private fun Omnibox(
     val bookmarks by controller.container.bookmarks.bookmarks.collectAsState()
 
     LaunchedEffect(url) {
-        if (!focused) value = if (UrlUtils.isHome(url)) "" else UrlUtils.pretty(url)
+        if (!focused) {
+            val t = if (UrlUtils.isHome(url)) "" else UrlUtils.pretty(url)
+            value = TextFieldValue(t, selection = TextRange(t.length))
+        }
+    }
+
+    // 聚焦即全选：输入新网址直接覆盖，避免光标落在旧文本中间造成拼接
+    LaunchedEffect(focused) {
+        if (focused) value = value.copy(selection = TextRange(0, value.text.length))
     }
 
     // 输入建议：书签命中置顶（标星），其后按访问时间倒序的历史
-    val suggestions = if (focused && value.isNotBlank()) {
-        val q = value.trim()
+    val suggestions = if (focused && value.text.isNotBlank()) {
+        val q = value.text.trim()
         val bm = bookmarks.filter {
             it.url.contains(q, true) || it.title.contains(q, true)
         }.take(3).map { OmniSuggestion(it.url, it.title, fromBookmark = true) }
@@ -675,7 +685,7 @@ private fun Omnibox(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(
                     onGo = {
-                        if (value.isNotBlank()) onSubmit(value)
+                        if (value.text.isNotBlank()) onSubmit(value.text)
                         focusManager.clearFocus()
                     }
                 ),
@@ -692,7 +702,7 @@ private fun Omnibox(
                         )
                         Spacer(Modifier.width(10.dp))
                         Box(Modifier.weight(1f)) {
-                            if (value.isEmpty()) {
+                            if (value.text.isEmpty()) {
                                 Text(
                                     if (UrlUtils.isHome(url)) "搜索或输入网址" else "",
                                     style = MaterialTheme.typography.bodyLarge,
@@ -701,8 +711,8 @@ private fun Omnibox(
                             }
                             inner()
                         }
-                        if (focused && value.isNotEmpty()) {
-                            IconButton(onClick = { value = "" }, modifier = Modifier.size(20.dp)) {
+                        if (focused && value.text.isNotEmpty()) {
+                            IconButton(onClick = { value = TextFieldValue("") }, modifier = Modifier.size(20.dp)) {
                                 Icon(Icons.Filled.Close, contentDescription = "清空", modifier = Modifier.size(16.dp))
                             }
                         }

@@ -29,4 +29,11 @@ class NativeBridge(
             Log.w("Navigateur", "bridge error", e)
         }
     }
+
+    /** 页面层拦截到的下载链接（新版 WebView 不再回调 onDownloadStart 的兜底主路径） */
+    @JavascriptInterface
+    fun download(url: String) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) return
+        tabManager.postDownload(url)
+    }
 }
