@@ -35,6 +35,8 @@ data class BrowserSettings(
     val remoteDebug: Boolean = false,
     /** 页面内开发者工具（eruda：Console/Elements/Network 等） */
     val devTools: Boolean = false,
+    /** 规则代理（JSON，结构见 ProxySettings） */
+    val proxyJson: String = "",
 )
 
 class SettingsRepository(context: Context) {
@@ -80,6 +82,7 @@ class SettingsRepository(context: Context) {
             .filter { it.isNotBlank() }.toSet(),
         remoteDebug = prefs.getBoolean(KEY_REMOTE_DEBUG, false),
         devTools = prefs.getBoolean(KEY_DEVTOOLS, false),
+        proxyJson = prefs.getString(KEY_PROXY, "") ?: "",
     )
 
     private fun persist(s: BrowserSettings) {
@@ -100,6 +103,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_ADBLOCK_ALLOW, s.adBlockAllowlist.sorted().joinToString(","))
             .putBoolean(KEY_REMOTE_DEBUG, s.remoteDebug)
             .putBoolean(KEY_DEVTOOLS, s.devTools)
+            .putString(KEY_PROXY, s.proxyJson)
             .commit() // commit 而非 apply：StringSet/apply 在部分 ROM 上不落盘，设置丢失
     }
 
@@ -137,5 +141,6 @@ class SettingsRepository(context: Context) {
         const val KEY_ADBLOCK_ALLOW = "adblock_allowlist"
         const val KEY_REMOTE_DEBUG = "remote_debug"
         const val KEY_DEVTOOLS = "devtools"
+        const val KEY_PROXY = "proxy_json"
     }
 }

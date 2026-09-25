@@ -511,6 +511,33 @@ private fun BrowserMenuContent(
                 onZoomOpen(true)
             },
         )
+        // 代理快切：直连 → 各出口 → 自动 → 直连
+        run {
+            val proxy = com.felix021.navigateur.data.ProxyRepository.fromJson(settings.proxyJson)
+            val chain = buildList {
+                add("direct"); proxy.profiles.forEach { add(it.id) }; add("auto")
+            }
+            val cur = if (proxy.mode in chain) proxy.mode else "direct"
+            val label = when (cur) {
+                "direct" -> "直连"
+                "auto" -> "自动"
+                else -> proxy.profiles.firstOrNull { it.id == cur }?.name ?: "直连"
+            }
+            DropdownMenuItem(
+                text = { Text("代理：$label") },
+                leadingIcon = { Icon(Icons.Filled.Language, null) },
+                onClick = {
+                    onDismiss()
+                    val next = chain[(chain.indexOf(cur) + 1) % chain.size]
+                    controller.container.settings.update { s ->
+                        val p = com.felix021.navigateur.data.ProxyRepository.fromJson(s.proxyJson)
+                        s.copy(proxyJson = com.felix021.navigateur.data.ProxyRepository.toJson(
+                            p.copy(mode = next, autoProfileId = p.autoProfileId.ifEmpty { p.profiles.firstOrNull()?.id ?: "" }),
+                        ))
+                    }
+                },
+            )
+        }
         // 当前站点广告拦截开关（仅广告拦截开启时展示，避免误导）
         if (settings.adBlockEnabled && current != null && !UrlUtils.isHome(current.url)) {
             val host = UrlUtils.hostOf(current.url)

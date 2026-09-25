@@ -21,6 +21,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -73,6 +74,9 @@ fun SettingsScreen(controller: BrowserController) {
     var showSiteClear by remember { mutableStateOf(false) }
     var showLandSide by remember { mutableStateOf(false) }
     var showAdAllow by remember { mutableStateOf(false) }
+    var showProxyMode by remember { mutableStateOf(false) }
+    var showProxyProfiles by remember { mutableStateOf(false) }
+    var showProxyRules by remember { mutableStateOf(false) }
     val adStatus by controller.container.adBlock.status.collectAsState()
 
     val update: ((com.felix021.navigateur.data.BrowserSettings) -> com.felix021.navigateur.data.BrowserSettings) -> Unit =
@@ -181,6 +185,21 @@ fun SettingsScreen(controller: BrowserController) {
                 else "${settings.adBlockAllowlist.size} 个站点不拦截",
             ) { showAdAllow = true }
 
+            SectionHeader("代理")
+            val proxy = com.felix021.navigateur.data.ProxyRepository.fromJson(settings.proxyJson)
+            SettingItem(
+                title = "当前模式",
+                value = proxyModeLabel(proxy),
+            ) { showProxyMode = true }
+            SettingItem(
+                title = "代理出口",
+                value = if (proxy.profiles.isEmpty()) "未添加" else proxy.profiles.joinToString(" / ") { it.name },
+            ) { showProxyProfiles = true }
+            SettingItem(
+                title = "自动切换规则",
+                value = if (proxy.rules.isEmpty()) "未添加" else "${proxy.rules.size} 条（命中直连）",
+            ) { showProxyRules = true }
+
             SectionHeader("开发者")
             SwitchItem(
                 title = "远程调试（chrome://inspect / CDP）",
@@ -273,6 +292,43 @@ fun SettingsScreen(controller: BrowserController) {
                 update { s -> s.copy(landscapeToolbarSide = it) }
                 showLandSide = false
             },
+        )
+    }
+    if (showProxyMode) {
+        ProxyModeDialog(
+            proxy = com.felix021.navigateur.data.ProxyRepository.fromJson(settings.proxyJson),
+            onSelect = { mode, autoId ->
+                update { s ->
+                    val p = com.felix021.navigateur.data.ProxyRepository.fromJson(s.proxyJson)
+                    s.copy(proxyJson = com.felix021.navigateur.data.ProxyRepository.toJson(p.copy(mode = mode, autoProfileId = autoId)))
+                }
+                showProxyMode = false
+            },
+            onDismiss = { showProxyMode = false },
+        )
+    }
+    if (showProxyProfiles) {
+        ProxyProfilesDialog(
+            proxy = com.felix021.navigateur.data.ProxyRepository.fromJson(settings.proxyJson),
+            onSave = { newList ->
+                update { s ->
+                    val p = com.felix021.navigateur.data.ProxyRepository.fromJson(s.proxyJson)
+                    s.copy(proxyJson = com.felix021.navigateur.data.ProxyRepository.toJson(p.copy(profiles = newList)))
+                }
+            },
+            onDismiss = { showProxyProfiles = false },
+        )
+    }
+    if (showProxyRules) {
+        ProxyRulesDialog(
+            proxy = com.felix021.navigateur.data.ProxyRepository.fromJson(settings.proxyJson),
+            onSave = { newRules ->
+                update { s ->
+                    val p = com.felix021.navigateur.data.ProxyRepository.fromJson(s.proxyJson)
+                    s.copy(proxyJson = com.felix021.navigateur.data.ProxyRepository.toJson(p.copy(rules = newRules)))
+                }
+            },
+            onDismiss = { showProxyRules = false },
         )
     }
     if (showAdAllow) {
@@ -564,5 +620,241 @@ private fun ClearDataDialog(
             }) { Text("清理") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+// ---------- 代理 ----------
+
+private fun proxyModeLabel(p: com.felix021.navigateur.data.ProxySettings): String = when (p.mode) {
+    "direct" -> "直连"
+    "auto" -> {
+        val name = p.profiles.firstOrNull { it.id == p.autoProfileId }?.name ?: "（未设出口）"
+        "自动切换（出口：$name）"
+    }
+    else -> p.profiles.firstOrNull { it.id == p.mode }?.let { "固定：${it.name}" } ?: "直连"
+}
+
+/** 模式选择：直连 / 各出口 / 自动切换（出口在下拉里选） */
+@Composable
+private fun ProxyModeDialog(
+    proxy: com.felix021.navigateur.data.ProxySettings,
+    onSelect: (mode: String, autoProfileId: String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = buildList {
+        add("direct" to "直连")
+        proxy.profiles.forEach { add(it.id to "固定走 ${it.name}") }
+        add("auto" to "自动切换（规则 + 默认出口）")
+    }
+    var autoId by remember(proxy) { mutableStateOf(proxy.autoProfileId.ifEmpty { proxy.profiles.firstOrNull()?.id ?: "" }) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("代理模式") },
+        text = {
+            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                options.forEach { (id, label) ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { onSelect(id, autoId) }.padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.RadioButton(
+                            selected = proxy.mode == id,
+                            onClick = { onSelect(id, autoId) },
+                        )
+                        Spacer(Modifier.padding(3.dp))
+                        Text(label)
+                    }
+                    // 自动切换时选默认出口
+                    if (id == "auto" && proxy.profiles.isNotEmpty()) {
+                        Text(
+                            "未命中直连规则时走：",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 12.dp),
+                        )
+                        proxy.profiles.forEach { pf ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { autoId = pf.id }
+                                    .padding(start = 28.dp, top = 6.dp, bottom = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                androidx.compose.material3.RadioButton(selected = autoId == pf.id, onClick = { autoId = pf.id })
+                                Spacer(Modifier.padding(3.dp))
+                                Text(pf.name, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+                if (proxy.profiles.isEmpty()) {
+                    Text(
+                        "还没有代理出口，先到「代理出口」添加",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+/** 出口管理：列表 + 删除 + 添加（名称/类型/主机/端口） */
+@Composable
+private fun ProxyProfilesDialog(
+    proxy: com.felix021.navigateur.data.ProxySettings,
+    onSave: (List<com.felix021.navigateur.data.ProxyProfile>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var adding by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    var host by remember { mutableStateOf("") }
+    var port by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf("HTTP") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (adding) "添加代理出口" else "代理出口") },
+        text = {
+            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                if (!adding) {
+                    proxy.profiles.forEach { pf ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(pf.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    "${pf.type} ${pf.host}:${pf.port}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = { onSave(proxy.profiles.filterNot { it.id == pf.id }) }) {
+                                Icon(Icons.Filled.Close, contentDescription = "删除", modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                    TextButton(onClick = { adding = true }) { Text("＋ 添加") }
+                } else {
+                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("名称") }, singleLine = true)
+                    Spacer(Modifier.padding(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        listOf("HTTP", "SOCKS5").forEach { t ->
+                            Row(
+                                Modifier.clickable { type = t }.padding(horizontal = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                androidx.compose.material3.RadioButton(selected = type == t, onClick = { type = t })
+                                Text(t, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                    OutlinedTextField(value = host, onValueChange = { host = it }, label = { Text("主机") }, singleLine = true)
+                    Spacer(Modifier.padding(4.dp))
+                    OutlinedTextField(value = port, onValueChange = { port = it.filter { c -> c.isDigit() } }, label = { Text("端口") }, singleLine = true)
+                }
+            }
+        },
+        confirmButton = {
+            if (adding) {
+                TextButton(
+                    onClick = {
+                        val p = port.toIntOrNull() ?: return@TextButton
+                        if (host.isBlank() || p !in 1..65535) return@TextButton
+                        onSave(
+                            proxy.profiles + com.felix021.navigateur.data.ProxyProfile(
+                                id = java.util.UUID.randomUUID().toString(),
+                                name = name.ifBlank { host },
+                                type = type, host = host.trim(), port = p,
+                            ),
+                        )
+                        adding = false; name = ""; host = ""; port = ""
+                    },
+                ) { Text("保存") }
+            } else {
+                TextButton(onClick = onDismiss) { Text("完成") }
+            }
+        },
+        dismissButton = {
+            if (adding) TextButton(onClick = { adding = false }) { Text("返回") }
+        },
+    )
+}
+
+/** 规则管理：pattern + 动作（直连/走代理） */
+@Composable
+private fun ProxyRulesDialog(
+    proxy: com.felix021.navigateur.data.ProxySettings,
+    onSave: (List<com.felix021.navigateur.data.ProxyRule>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var adding by remember { mutableStateOf(false) }
+    var pattern by remember { mutableStateOf("") }
+    var direct by remember { mutableStateOf(true) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (adding) "添加规则" else "自动切换规则") },
+        text = {
+            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                if (!adding) {
+                    Text(
+                        "自动模式下：命中「直连」规则的域名不走代理，其余走默认出口",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    proxy.rules.forEach { r ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "${if (r.action == "direct") "直连" else "代理"}  ${r.pattern}",
+                                Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            IconButton(onClick = { onSave(proxy.rules.filterNot { it.pattern == r.pattern }) }) {
+                                Icon(Icons.Filled.Close, contentDescription = "删除", modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                    TextButton(onClick = { adding = true }) { Text("＋ 添加") }
+                } else {
+                    OutlinedTextField(
+                        value = pattern,
+                        onValueChange = { pattern = it },
+                        label = { Text("域名，如 baidu.com 或 *.google.com") },
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.padding(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.RadioButton(selected = direct, onClick = { direct = true })
+                        Text("直连", Modifier.clickable { direct = true })
+                        Spacer(Modifier.padding(8.dp))
+                        androidx.compose.material3.RadioButton(selected = !direct, onClick = { direct = false })
+                        Text("走代理", Modifier.clickable { direct = false })
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (adding) {
+                TextButton(
+                    onClick = {
+                        if (pattern.isBlank()) return@TextButton
+                        onSave(
+                            proxy.rules.filterNot { it.pattern == pattern.trim() } +
+                                com.felix021.navigateur.data.ProxyRule(pattern.trim(), if (direct) "direct" else "proxy"),
+                        )
+                        adding = false; pattern = ""
+                    },
+                ) { Text("保存") }
+            } else {
+                TextButton(onClick = onDismiss) { Text("完成") }
+            }
+        },
+        dismissButton = {
+            if (adding) TextButton(onClick = { adding = false }) { Text("返回") }
+        },
     )
 }

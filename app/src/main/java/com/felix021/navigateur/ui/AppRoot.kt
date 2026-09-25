@@ -1,5 +1,6 @@
 package com.felix021.navigateur.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,6 +32,11 @@ fun AppRoot(controller: BrowserController) {
     }
     MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            // 子页面（标签/书签/设置）返回 → 回浏览页；浏览页自身由 BrowserScreen 的
+            // BackHandler 处理（页面后退 / 退出确认），内层 handler 优先消费
+            if (controller.screen.value != Screen.Browser) {
+                BackHandler { controller.screen.value = Screen.Browser }
+            }
             when (controller.screen.value) {
                 Screen.Browser -> BrowserScreen(controller)
                 Screen.Tabs -> CutoutSafe { TabsScreen(controller) }

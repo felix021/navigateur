@@ -59,9 +59,19 @@ class TabManager(
                 context.assets.open("devtools/eruda.min.js").bufferedReader().readText()
             }.getOrNull()?.also { erudaJs = it } ?: return
             wv.evaluateJavascript(
-                // 换行必不可少：eruda.min.js 以 //# sourceMappingURL 行注释结尾，
-                // 不换行会把后面的 init 调用一起注释掉
-                "(function(){if(window.__nvEruda)return;\n" + src + "\n;eruda.init();window.__nvEruda=1;})();",
+                // src 前后换行必不可少：eruda.min.js 以 //# sourceMappingURL 行注释结尾
+                "(function(){if(window.__nvEruda)return;\n" + src + "\n" +
+                    "eruda.init();window.__nvEruda=1;" +
+                    "try{var lv=document.documentElement.clientWidth||window.innerWidth;" +
+                    "var vw=window.innerWidth||lv;" +
+                    "var z=lv>vw*1.5?lv/vw:1;" + // 桌面模式宽视口：反向补偿 overview 缩小
+                    // eruda 3 是 Shadow DOM：外部样式进不去，入口按钮放大要注入 shadowRoot
+                    "var root=document.getElementById('eruda');" +
+                    "if(root){root.style.zoom=(1.3*z);" +
+                    "if(root.shadowRoot){var st=document.createElement('style');" +
+                    "st.textContent='.eruda-entry-btn{transform:scale(1.7);transform-origin:50% 50%;}';" +
+                    "root.shadowRoot.appendChild(st);}}}catch(e){}" +
+                    "})();",
                 null,
             )
         } else {
