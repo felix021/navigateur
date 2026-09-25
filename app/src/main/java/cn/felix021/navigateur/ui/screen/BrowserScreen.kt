@@ -1,6 +1,7 @@
 package cn.felix021.navigateur.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DesktopWindows
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
@@ -62,6 +65,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import android.widget.FrameLayout
 import cn.felix021.navigateur.browser.TabState
 import cn.felix021.navigateur.ui.BrowserController
@@ -98,6 +102,7 @@ fun BrowserScreen(controller: BrowserController) {
             .statusBarsPadding()
     ) {
         Omnibox(
+            controller = controller,
             url = current?.url.orEmpty(),
             onSubmit = { controller.loadOrSearch(it) },
         )
@@ -142,62 +147,131 @@ private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
+private data class OmniSuggestion(val url: String, val title: String, val fromBookmark: Boolean)
+
 @Composable
-private fun Omnibox(url: String, onSubmit: (String) -> Unit) {
+private fun Omnibox(controller: BrowserController, url: String, onSubmit: (String) -> Unit) {
     var value by remember { mutableStateOf("") }
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val focusManager = LocalFocusManager.current
+    val history by controller.container.history.history.collectAsState()
+    val bookmarks by controller.container.bookmarks.bookmarks.collectAsState()
 
     LaunchedEffect(url) {
         if (!focused) value = if (UrlUtils.isHome(url)) "" else UrlUtils.pretty(url)
     }
 
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
-        BasicTextField(
-            value = value,
-            onValueChange = { value = it },
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            interactionSource = interaction,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-            keyboardActions = KeyboardActions(
-                onGo = {
-                    if (value.isNotBlank()) onSubmit(value)
-                    focusManager.clearFocus()
-                }
-            ),
-            decorationBox = { inner ->
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        if (!focused && url.startsWith("https://")) Icons.Filled.Lock else Icons.Filled.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Box(Modifier.weight(1f)) {
-                        if (value.isEmpty()) {
-                            Text(
-                                if (UrlUtils.isHome(url)) "搜索或输入网址" else "",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+    // 输入建议：书签命中置顶（标星），其后按访问时间倒序的历史
+    val suggestions = if (focused && value.isNotBlank()) {
+        val q = value.trim()
+        val bm = bookmarks.filter {
+            it.url.contains(q, true) || it.title.contains(q, true)
+        }.take(3).map { OmniSuggestion(it.url, it.title, fromBookmark = true) }
+        val hi = history.filter {
+            it.url.contains(q, true) || it.title.contains(q, true)
+        }.take(6).map { OmniSuggestion(it.url, it.title, fromBookmark = false) }
+        (bm + hi).distinctBy { it.url }.take(6)
+    } else emptyList()
+
+    Box(Modifier.fillMaxWidth()) {
+        // 输入建议面板，浮在页面内容之上
+        if (suggestions.isNotEmpty()) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .offset(y = 56.dp)
+                    .zIndex(1f),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 4.dp,
+                shadowElevation = 8.dp,
+            ) {
+                Column {
+                    suggestions.forEach { s ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    focusManager.clearFocus()
+                                    onSubmit(s.url)
+                                }
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                if (s.fromBookmark) Icons.Filled.Star else Icons.Filled.History,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp),
                             )
-                        }
-                        inner()
-                    }
-                    if (focused && value.isNotEmpty()) {
-                        IconButton(onClick = { value = "" }, modifier = Modifier.size(20.dp)) {
-                            Icon(Icons.Filled.Close, contentDescription = "清空", modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    s.title.ifBlank { s.url },
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    UrlUtils.pretty(s.url),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
-            },
-        )
+            }
+        }
+        Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
+            BasicTextField(
+                value = value,
+                onValueChange = { value = it },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                interactionSource = interaction,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(
+                    onGo = {
+                        if (value.isNotBlank()) onSubmit(value)
+                        focusManager.clearFocus()
+                    }
+                ),
+                decorationBox = { inner ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            if (!focused && url.startsWith("https://")) Icons.Filled.Lock else Icons.Filled.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Box(Modifier.weight(1f)) {
+                            if (value.isEmpty()) {
+                                Text(
+                                    if (UrlUtils.isHome(url)) "搜索或输入网址" else "",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            inner()
+                        }
+                        if (focused && value.isNotEmpty()) {
+                            IconButton(onClick = { value = "" }, modifier = Modifier.size(20.dp)) {
+                                Icon(Icons.Filled.Close, contentDescription = "清空", modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                },
+            )
+        }
     }
 }
 
@@ -223,7 +297,7 @@ private fun ZoomDialog(
                     valueRange = 50f..200f,
                 )
                 Text(
-                    "仅缩放文字，部分站点可能排版异常",
+                    "整体缩放页面内容（含布局与图片），实时生效",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -248,9 +322,9 @@ private fun BottomBar(
     val settings by controller.container.settings.settings.collectAsState()
     if (zoomOpen) {
         ZoomDialog(
-            zoomPercent = settings.textZoomPercent,
+            zoomPercent = settings.pageZoomPercent,
             onZoom = { pct ->
-                controller.container.settings.update { s -> s.copy(textZoomPercent = pct) }
+                controller.container.settings.update { s -> s.copy(pageZoomPercent = pct) }
             },
             onDismiss = { zoomOpen = false },
         )
@@ -319,7 +393,7 @@ private fun BottomBar(
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("页面缩放（${settings.textZoomPercent}%）") },
+                        text = { Text("页面缩放（${settings.pageZoomPercent}%）") },
                         leadingIcon = { Icon(Icons.Filled.ZoomIn, null) },
                         onClick = {
                             menuOpen = false

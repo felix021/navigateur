@@ -35,6 +35,17 @@ object JsScripts {
         })();
     """.trimIndent()
 
+    /** 页面整体缩放（CSS zoom，含布局与图片），100 时移除 */
+    fun zoomCss(percent: Int): String {
+        val p = percent.coerceIn(50, 200)
+        val value = if (p == 100) "''" else "'" + (p / 100.0) + "'"
+        return """
+            (function () {
+              document.documentElement.style.zoom = $value;
+            })();
+        """.trimIndent()
+    }
+
     /** 字体覆盖：替换 id=nv-font 的样式元素，空 family 即清除覆盖 */
     fun fontCss(family: String): String {
         val fam = family.replace(Regex("[^a-zA-Z0-9 ,\\-']"), "").trim()

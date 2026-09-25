@@ -2,6 +2,7 @@ package cn.felix021.navigateur
 
 import android.content.Context
 import cn.felix021.navigateur.data.BookmarkRepository
+import cn.felix021.navigateur.data.HistoryRepository
 import cn.felix021.navigateur.data.PasswordStore
 import cn.felix021.navigateur.data.SettingsRepository
 import cn.felix021.navigateur.data.TabSessionStore
@@ -13,4 +14,5 @@ class AppContainer(context: Context) {
     val bookmarks = BookmarkRepository(appContext)
     val passwords = PasswordStore(appContext)
     val tabSessions = TabSessionStore(appContext)
+    val history = HistoryRepository(appContext)
 }

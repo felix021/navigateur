@@ -48,6 +48,7 @@ class BrowserWebViewClient(
         if (skip(url)) return
         tm.updateState(tabId) { it.copy(loading = false, progress = 100) }
         tm.injectForPage(tabId, view, url)
+        tm.recordHistory(tabId, url)
         tm.refreshNav()
         tm.persist()
     }
@@ -56,6 +57,7 @@ class BrowserWebViewClient(
         if (url == null || skip(url) || UrlUtils.isHome(url)) return
         // 每次导航必然回调：在此兜底注入捕获 hook（幂等，SPA 场景也覆盖）
         tm.injectCaptureHook(view)
+        tm.recordHistory(tabId, url)
         tm.updateState(tabId) { if (it.url != url) it.copy(url = url) else it }
         tm.refreshNav()
         tm.persist()

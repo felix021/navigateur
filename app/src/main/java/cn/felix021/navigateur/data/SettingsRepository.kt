@@ -17,7 +17,8 @@ data class BrowserSettings(
     val customUserAgent: String = "",
     /** 空 = 跟随网站；否则为 CSS font-family 值（sans-serif / serif / monospace） */
     val fontFamily: String = "",
-    val textZoomPercent: Int = 100,
+    /** 页面整体缩放百分比（CSS zoom，非仅字体），50–200 */
+    val pageZoomPercent: Int = 100,
     val themeMode: ThemeMode = ThemeMode.FOLLOW_SYSTEM,
     val savePasswords: Boolean = true,
 )
@@ -52,7 +53,7 @@ class SettingsRepository(context: Context) {
         uaPresetId = prefs.getString(KEY_UA_PRESET, "default") ?: "default",
         customUserAgent = prefs.getString(KEY_UA, "") ?: "",
         fontFamily = prefs.getString(KEY_FONT, "") ?: "",
-        textZoomPercent = prefs.getInt(KEY_ZOOM, 100).coerceIn(50, 200),
+        pageZoomPercent = prefs.getInt(KEY_ZOOM, 100).coerceIn(50, 200),
         themeMode = runCatching {
             ThemeMode.valueOf(prefs.getString(KEY_THEME, ThemeMode.FOLLOW_SYSTEM.name)!!)
         }.getOrDefault(ThemeMode.FOLLOW_SYSTEM),
@@ -67,7 +68,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_UA_PRESET, s.uaPresetId)
             .putString(KEY_UA, s.customUserAgent)
             .putString(KEY_FONT, s.fontFamily)
-            .putInt(KEY_ZOOM, s.textZoomPercent)
+            .putInt(KEY_ZOOM, s.pageZoomPercent)
             .putString(KEY_THEME, s.themeMode.name)
             .putBoolean(KEY_SAVEPW, s.savePasswords)
             .apply()

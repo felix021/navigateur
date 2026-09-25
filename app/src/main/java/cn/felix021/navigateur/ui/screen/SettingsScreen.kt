@@ -112,16 +112,16 @@ fun SettingsScreen(controller: BrowserController) {
             ) { showTheme = true }
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("字号", style = MaterialTheme.typography.bodyLarge)
+                    Text("页面缩放", style = MaterialTheme.typography.bodyLarge)
                     Spacer(Modifier.weight(1f))
                     Text(
-                        "${settings.textZoomPercent}%",
+                        "${settings.pageZoomPercent}%",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Slider(
-                    value = settings.textZoomPercent.toFloat(),
-                    onValueChange = { update { s -> s.copy(textZoomPercent = it.toInt().coerceIn(50, 200)) } },
+                    value = settings.pageZoomPercent.toFloat(),
+                    onValueChange = { update { s -> s.copy(pageZoomPercent = it.toInt().coerceIn(50, 200)) } },
                     valueRange = 50f..200f,
                 )
             }
@@ -145,7 +145,7 @@ fun SettingsScreen(controller: BrowserController) {
             SectionHeader("隐私")
             SettingItem(
                 title = "清理浏览数据",
-                value = "Cookie / 站点存储 / 缓存 / 密码（全部）",
+                value = "Cookie / 站点存储 / 缓存 / 历史 / 密码（全部）",
             ) { showClear = true }
             SettingItem(
                 title = "按站点清理",
@@ -242,8 +242,8 @@ fun SettingsScreen(controller: BrowserController) {
         SiteClearDialog(
             hosts = controller.knownHosts(),
             onDismiss = { showSiteClear = false },
-            onClear = { host, cookies, storage, pw ->
-                controller.clearSiteData(host, cookies, storage, pw)
+            onClear = { host, cookies, storage, pw, his ->
+                controller.clearSiteData(host, cookies, storage, pw, his)
                 showSiteClear = false
             },
         )
@@ -251,8 +251,8 @@ fun SettingsScreen(controller: BrowserController) {
     if (showClear) {
         ClearDataDialog(
             onDismiss = { showClear = false },
-            onClear = { cookies, storage, cache, form, pw ->
-                controller.clearData(cookies, storage, cache, form, pw)
+            onClear = { cookies, storage, cache, form, pw, his ->
+                controller.clearData(cookies, storage, cache, form, pw, his)
                 showClear = false
             },
         )
@@ -268,17 +268,23 @@ private fun uaDisplay(s: cn.felix021.navigateur.data.BrowserSettings): String {
     }
 }
 
-/** 按站点清理：手动输入或从已知站点选择，勾选要清理的类别 */
+/** 按站点清理：输入时下拉匹配已知站点（密码/书签/历史），勾选要清理的类别 */
 @Composable
 private fun SiteClearDialog(
     hosts: List<String>,
     onDismiss: () -> Unit,
-    onClear: (host: String, cookies: Boolean, storage: Boolean, passwords: Boolean) -> Unit,
+    onClear: (host: String, cookies: Boolean, storage: Boolean, passwords: Boolean, history: Boolean) -> Unit,
 ) {
     var host by remember { mutableStateOf("") }
     var clearCookies by remember { mutableStateOf(true) }
     var clearStorage by remember { mutableStateOf(true) }
     var clearPasswords by remember { mutableStateOf(true) }
+    var clearHistory by remember { mutableStateOf(true) }
+    // 输入为空显示全部（最多 8 个），否则按前缀/包含过滤
+    val matched = remember(host, hosts) {
+        if (host.isBlank()) hosts.take(8)
+        else hosts.filter { it.contains(host, ignoreCase = true) }.take(8)
+    }.filter { it != host }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("按站点清理") },
@@ -290,35 +296,32 @@ private fun SiteClearDialog(
                     label = { Text("站点域名") },
                     singleLine = true,
                 )
-                if (hosts.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "已知站点",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    hosts.take(6).forEach { h ->
+                if (matched.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    matched.forEach { h ->
                         Text(
                             h,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { host = h }
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 7.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
+                    Spacer(Modifier.height(4.dp))
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 CheckRow("Cookie", clearCookies) { clearCookies = it }
                 CheckRow("站点存储（localStorage 等）", clearStorage) { clearStorage = it }
                 CheckRow("已保存密码", clearPasswords) { clearPasswords = it }
+                CheckRow("浏览历史（该站点）", clearHistory) { clearHistory = it }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (host.isNotBlank()) onClear(host, clearCookies, clearStorage, clearPasswords)
+                    if (host.isNotBlank()) onClear(host, clearCookies, clearStorage, clearPasswords, clearHistory)
                 },
                 enabled = host.isNotBlank(),
             ) { Text("清理") }
@@ -399,7 +402,7 @@ private fun SwitchItem(
 @Composable
 private fun ClearDataDialog(
     onDismiss: () -> Unit,
-    onClear: (cookies: Boolean, storage: Boolean, cache: Boolean, formData: Boolean, passwords: Boolean) -> Unit,
+    onClear: (cookies: Boolean, storage: Boolean, cache: Boolean, formData: Boolean, passwords: Boolean, history: Boolean) -> Unit,
 ) {
     val labels = listOf(
         "Cookie",
@@ -407,8 +410,9 @@ private fun ClearDataDialog(
         "缓存",
         "表单数据",
         "已保存密码",
+        "浏览历史",
     )
-    val checked = remember { mutableStateListOf(true, true, true, true, false) }
+    val checked = remember { mutableStateListOf(true, true, true, true, false, true) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("清理浏览数据") },
@@ -430,7 +434,7 @@ private fun ClearDataDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                onClear(checked[0], checked[1], checked[2], checked[3], checked[4])
+                onClear(checked[0], checked[1], checked[2], checked[3], checked[4], checked[5])
             }) { Text("清理") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },

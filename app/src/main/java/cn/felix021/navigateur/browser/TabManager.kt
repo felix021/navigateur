@@ -45,6 +45,7 @@ class TabManager(
 
     private var lastAppliedUa: String? = null
     private var lastAppliedDark: Boolean? = null
+    private var lastAppliedZoom: Int? = null
 
     val current: TabState? get() = _tabs.value.firstOrNull { it.id == _currentId.value }
     val currentWebView: WebView? get() = _currentId.value?.let { webViews[it] }
@@ -251,6 +252,7 @@ class TabManager(
     fun injectForPage(tabId: String, wv: WebView, url: String) {
         val s = container.settings.current
         wv.evaluateJavascript(JsScripts.fontCss(s.fontFamily), null)
+        wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
         injectCaptureHook(wv)
         if (url.startsWith("https://")) {
             val host = UrlUtils.hostOf(url)
@@ -268,6 +270,13 @@ class TabManager(
         wv.evaluateJavascript(JsScripts.CAPTURE_HOOK, null)
     }
 
+    /** 记录浏览历史（同 URL 更新时间，标题取当前标签标题） */
+    fun recordHistory(tabId: String, url: String) {
+        if (UrlUtils.isHome(url)) return
+        val title = _tabs.value.firstOrNull { it.id == tabId }?.title.orEmpty()
+        container.history.add(url, title)
+    }
+
     fun onRenderGone(tabId: String) {
         val wv = webViews.remove(tabId) ?: return
         (wv.parent as? ViewGroup)?.removeView(wv)
@@ -283,12 +292,18 @@ class TabManager(
         val first = lastAppliedUa == null
         val uaChanged = !first && uaKey != lastAppliedUa
         val darkChanged = lastAppliedDark != null && dark != lastAppliedDark
+        val zoomChanged = lastAppliedZoom != null && s.pageZoomPercent != lastAppliedZoom
         lastAppliedUa = uaKey
         lastAppliedDark = dark
+        lastAppliedZoom = s.pageZoomPercent
         if (webViews.isEmpty()) return
         webViews.values.forEach { wv ->
             WebViewFactory.applyLiveSettings(wv, s)
             wv.evaluateJavascript(JsScripts.fontCss(s.fontFamily), null)
+            if (zoomChanged) {
+                // CSS zoom 即时生效，无需刷新
+                wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
+            }
             val tab = tabOf(wv)
             if (uaChanged) {
                 WebViewFactory.applyUserAgent(context, wv, s, tab?.desktopMode == true)

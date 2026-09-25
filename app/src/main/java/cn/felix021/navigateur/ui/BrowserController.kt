@@ -78,6 +78,7 @@ class BrowserController(val activity: MainActivity) {
         cache: Boolean,
         formData: Boolean,
         passwords: Boolean,
+        history: Boolean,
     ) {
         if (cookies) CookieManager.getInstance().removeAllCookies(null)
         if (siteStorage) WebStorage.getInstance().deleteAllData()
@@ -87,20 +88,28 @@ class BrowserController(val activity: MainActivity) {
             runCatching { WebViewDatabase.getInstance(activity).clearHttpAuthUsernamePassword() }
         }
         if (passwords) container.passwords.clear()
+        if (history) container.history.clear()
         Toast.makeText(activity, "已清理", Toast.LENGTH_SHORT).show()
     }
 
-    /** 已知站点列表（密码库 + 书签域名），用于按站点清理 */
+    /** 已知站点列表（密码库 + 书签 + 历史），用于按站点清理 */
     fun knownHosts(): List<String> = buildSet {
         container.passwords.hosts().forEach(::add)
         container.bookmarks.bookmarks.value.forEach { UrlUtils.hostOf(it.url).takeIf { h -> h.isNotBlank() }?.let(::add) }
+        container.history.hosts().forEach(::add)
     }.sorted()
 
     /**
      * 按站点清理。cookie 无公开按域删除 API，用逐个过期的方式尽力清理；
-     * 站点存储用 WebStorage.deleteOriginData（localStorage/WebSQL）。
+     * 站点存储用 WebStorage.deleteOrigin（localStorage/WebSQL）。
      */
-    fun clearSiteData(host: String, cookies: Boolean, siteStorage: Boolean, passwords: Boolean) {
+    fun clearSiteData(
+        host: String,
+        cookies: Boolean,
+        siteStorage: Boolean,
+        passwords: Boolean,
+        history: Boolean,
+    ) {
         if (cookies) {
             val cm = CookieManager.getInstance()
             listOf("https://$host/", "http://$host/").forEach { url ->
@@ -119,6 +128,7 @@ class BrowserController(val activity: MainActivity) {
             runCatching { WebStorage.getInstance().deleteOrigin(host) }
         }
         if (passwords) container.passwords.remove(host)
+        if (history) container.history.removeByHost(host)
         Toast.makeText(activity, "已清理 $host", Toast.LENGTH_SHORT).show()
     }
 }

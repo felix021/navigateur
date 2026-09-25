@@ -34,13 +34,12 @@ object WebViewFactory {
         ws.loadWithOverviewMode = true
         applyUserAgent(context, wv, s, desktopMode)
 
-        ws.textZoom = s.textZoomPercent
         applyDarkening(wv, dark)
     }
 
     /** 无导航副作用的配置项（可对已加载页面随时应用） */
     fun applyLiveSettings(wv: WebView, s: BrowserSettings) {
-        wv.settings.textZoom = s.textZoomPercent
+        // 整体缩放走 CSS zoom 注入（见 TabManager.applySettings），无原生 API
     }
 
     /**
