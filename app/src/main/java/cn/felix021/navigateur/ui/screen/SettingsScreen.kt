@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cn.felix021.navigateur.data.SearchEngines
 import cn.felix021.navigateur.data.ThemeMode
+import cn.felix021.navigateur.data.UaPresets
 import cn.felix021.navigateur.ui.BrowserController
 import cn.felix021.navigateur.ui.Screen
 import cn.felix021.navigateur.ui.component.SingleChoiceDialog
@@ -64,7 +65,9 @@ fun SettingsScreen(controller: BrowserController) {
     var showTheme by remember { mutableStateOf(false) }
     var showFont by remember { mutableStateOf(false) }
     var showUa by remember { mutableStateOf(false) }
+    var showUaCustom by remember { mutableStateOf(false) }
     var showClear by remember { mutableStateOf(false) }
+    var showSiteClear by remember { mutableStateOf(false) }
 
     val update: ((cn.felix021.navigateur.data.BrowserSettings) -> cn.felix021.navigateur.data.BrowserSettings) -> Unit =
         { controller.container.settings.update(it) }
@@ -130,20 +133,24 @@ fun SettingsScreen(controller: BrowserController) {
             SectionHeader("网站")
             SwitchItem(
                 title = "默认桌面模式",
-                subtitle = "新标签页默认以桌面 UA 打开",
+                subtitle = "新标签页默认以桌面 UA 打开（UA 预设为默认时生效）",
                 checked = settings.desktopModeDefault,
                 onChange = { enabled -> update { it.copy(desktopModeDefault = enabled) } },
             )
             SettingItem(
-                title = "自定义 User-Agent",
-                value = settings.customUserAgent.ifBlank { "默认（移动端）" },
+                title = "User-Agent",
+                value = uaDisplay(settings),
             ) { showUa = true }
 
             SectionHeader("隐私")
             SettingItem(
                 title = "清理浏览数据",
-                value = "Cookie / 站点存储 / 缓存 / 密码",
+                value = "Cookie / 站点存储 / 缓存 / 密码（全部）",
             ) { showClear = true }
+            SettingItem(
+                title = "按站点清理",
+                value = "清除指定站点的存储 / Cookie / 密码",
+            ) { showSiteClear = true }
 
             Spacer(Modifier.height(32.dp))
         }
@@ -202,15 +209,42 @@ fun SettingsScreen(controller: BrowserController) {
         )
     }
     if (showUa) {
+        SingleChoiceDialog(
+            title = "User-Agent",
+            options = UaPresets.ALL,
+            selected = UaPresets.byId(settings.uaPresetId),
+            label = { it.label },
+            onDismiss = { showUa = false },
+            onSelect = {
+                showUa = false
+                if (it.id == UaPresets.CUSTOM) {
+                    showUaCustom = true
+                } else {
+                    update { s -> s.copy(uaPresetId = it.id) }
+                }
+            },
+        )
+    }
+    if (showUaCustom) {
         TextInputDialog(
             title = "自定义 User-Agent",
             initial = settings.customUserAgent,
             label = "UA 字符串",
-            supportingText = "留空使用默认移动端 UA；立即生效并刷新已打开页面",
-            onDismiss = { showUa = false },
+            supportingText = "保存后立即生效并刷新已打开页面；留空则回退默认",
+            onDismiss = { showUaCustom = false },
             onOk = { v ->
-                update { it.copy(customUserAgent = v) }
-                showUa = false
+                update { it.copy(uaPresetId = UaPresets.CUSTOM, customUserAgent = v) }
+                showUaCustom = false
+            },
+        )
+    }
+    if (showSiteClear) {
+        SiteClearDialog(
+            hosts = controller.knownHosts(),
+            onDismiss = { showSiteClear = false },
+            onClear = { host, cookies, storage, pw ->
+                controller.clearSiteData(host, cookies, storage, pw)
+                showSiteClear = false
             },
         )
     }
@@ -222,6 +256,85 @@ fun SettingsScreen(controller: BrowserController) {
                 showClear = false
             },
         )
+    }
+}
+
+private fun uaDisplay(s: cn.felix021.navigateur.data.BrowserSettings): String {
+    val preset = UaPresets.byId(s.uaPresetId)
+    return if (preset.id == UaPresets.CUSTOM) {
+        s.customUserAgent.ifBlank { "默认（本机）" }
+    } else {
+        preset.label
+    }
+}
+
+/** 按站点清理：手动输入或从已知站点选择，勾选要清理的类别 */
+@Composable
+private fun SiteClearDialog(
+    hosts: List<String>,
+    onDismiss: () -> Unit,
+    onClear: (host: String, cookies: Boolean, storage: Boolean, passwords: Boolean) -> Unit,
+) {
+    var host by remember { mutableStateOf("") }
+    var clearCookies by remember { mutableStateOf(true) }
+    var clearStorage by remember { mutableStateOf(true) }
+    var clearPasswords by remember { mutableStateOf(true) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("按站点清理") },
+        text = {
+            Column {
+                androidx.compose.material3.OutlinedTextField(
+                    value = host,
+                    onValueChange = { host = it.trim() },
+                    label = { Text("站点域名") },
+                    singleLine = true,
+                )
+                if (hosts.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "已知站点",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    hosts.take(6).forEach { h ->
+                        Text(
+                            h,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { host = h }
+                                .padding(vertical = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                CheckRow("Cookie", clearCookies) { clearCookies = it }
+                CheckRow("站点存储（localStorage 等）", clearStorage) { clearStorage = it }
+                CheckRow("已保存密码", clearPasswords) { clearPasswords = it }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (host.isNotBlank()) onClear(host, clearCookies, clearStorage, clearPasswords)
+                },
+                enabled = host.isNotBlank(),
+            ) { Text("清理") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
+}
+
+@Composable
+private fun CheckRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onChange(!checked) }.padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = onChange)
+        Text(label, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

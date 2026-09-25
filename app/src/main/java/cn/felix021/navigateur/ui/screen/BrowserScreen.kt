@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tab
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -42,6 +44,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,9 +77,26 @@ fun BrowserScreen(controller: BrowserController) {
     val bookmarks by controller.container.bookmarks.bookmarks.collectAsState()
     val bookmarked = current != null && bookmarks.any { it.url == current.url }
 
-    BackHandler(enabled = nav.first) { controller.tabManager.goBack() }
+    // 返回键始终接管：有页面历史则后退，否则询问退出
+    BackHandler {
+        if (nav.first) controller.tabManager.goBack()
+        else controller.exitConfirm.value = true
+    }
+    if (controller.exitConfirm.value) {
+        ExitConfirmDialog(
+            onConfirm = {
+                controller.exitConfirm.value = false
+                controller.exitApp()
+            },
+            onDismiss = { controller.exitConfirm.value = false },
+        )
+    }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
         Omnibox(
             url = current?.url.orEmpty(),
             onSubmit = { controller.loadOrSearch(it) },
@@ -105,6 +125,21 @@ fun BrowserScreen(controller: BrowserController) {
         }
         BottomBar(controller, current, bookmarked, nav, tabs.size)
     }
+}
+
+@Composable
+private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("退出浏览器？") },
+        text = { Text("当前没有可返回的页面，确定要退出吗？") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("退出") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        },
+    )
 }
 
 @Composable
@@ -166,6 +201,40 @@ private fun Omnibox(url: String, onSubmit: (String) -> Unit) {
     }
 }
 
+/** 页面缩放对话框：滑块实时改 textZoom */
+@Composable
+private fun ZoomDialog(
+    zoomPercent: Int,
+    onZoom: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("页面缩放") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "$zoomPercent%",
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+                androidx.compose.material3.Slider(
+                    value = zoomPercent.toFloat(),
+                    onValueChange = { onZoom(it.toInt().coerceIn(50, 200)) },
+                    valueRange = 50f..200f,
+                )
+                Text(
+                    "仅缩放文字，部分站点可能排版异常",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("完成") }
+        },
+    )
+}
+
 @Composable
 private fun BottomBar(
     controller: BrowserController,
@@ -175,6 +244,17 @@ private fun BottomBar(
     tabCount: Int,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
+    var zoomOpen by remember { mutableStateOf(false) }
+    val settings by controller.container.settings.settings.collectAsState()
+    if (zoomOpen) {
+        ZoomDialog(
+            zoomPercent = settings.textZoomPercent,
+            onZoom = { pct ->
+                controller.container.settings.update { s -> s.copy(textZoomPercent = pct) }
+            },
+            onDismiss = { zoomOpen = false },
+        )
+    }
     Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().height(52.dp),
@@ -236,6 +316,14 @@ private fun BottomBar(
                         onClick = {
                             menuOpen = false
                             current?.let { controller.tabManager.setDesktopMode(it.id, !it.desktopMode) }
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("页面缩放（${settings.textZoomPercent}%）") },
+                        leadingIcon = { Icon(Icons.Filled.ZoomIn, null) },
+                        onClick = {
+                            menuOpen = false
+                            zoomOpen = true
                         },
                     )
                     DropdownMenuItem(

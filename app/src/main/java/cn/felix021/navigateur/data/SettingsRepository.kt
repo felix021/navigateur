@@ -12,6 +12,8 @@ data class BrowserSettings(
     val homepage: String = "about:home",
     val searchEngineId: String = "duckduckgo",
     val desktopModeDefault: Boolean = false,
+    /** UA 预设 id，见 UaPresets；custom 时使用 customUserAgent */
+    val uaPresetId: String = "default",
     val customUserAgent: String = "",
     /** 空 = 跟随网站；否则为 CSS font-family 值（sans-serif / serif / monospace） */
     val fontFamily: String = "",
@@ -47,6 +49,7 @@ class SettingsRepository(context: Context) {
         homepage = prefs.getString(KEY_HOME, "about:home") ?: "about:home",
         searchEngineId = prefs.getString(KEY_ENGINE, "duckduckgo") ?: "duckduckgo",
         desktopModeDefault = prefs.getBoolean(KEY_DESKTOP, false),
+        uaPresetId = prefs.getString(KEY_UA_PRESET, "default") ?: "default",
         customUserAgent = prefs.getString(KEY_UA, "") ?: "",
         fontFamily = prefs.getString(KEY_FONT, "") ?: "",
         textZoomPercent = prefs.getInt(KEY_ZOOM, 100).coerceIn(50, 200),
@@ -61,6 +64,7 @@ class SettingsRepository(context: Context) {
             .putString(KEY_HOME, s.homepage)
             .putString(KEY_ENGINE, s.searchEngineId)
             .putBoolean(KEY_DESKTOP, s.desktopModeDefault)
+            .putString(KEY_UA_PRESET, s.uaPresetId)
             .putString(KEY_UA, s.customUserAgent)
             .putString(KEY_FONT, s.fontFamily)
             .putInt(KEY_ZOOM, s.textZoomPercent)
@@ -90,6 +94,7 @@ class SettingsRepository(context: Context) {
         const val KEY_HOME = "homepage"
         const val KEY_ENGINE = "search_engine"
         const val KEY_DESKTOP = "desktop_default"
+        const val KEY_UA_PRESET = "ua_preset"
         const val KEY_UA = "custom_ua"
         const val KEY_FONT = "font_family"
         const val KEY_ZOOM = "text_zoom"

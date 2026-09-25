@@ -34,4 +34,6 @@ class PasswordStore(context: Context) {
     fun clear() {
         prefs.edit().clear().apply()
     }
+
+    fun hosts(): List<String> = prefs.all.keys.sorted()
 }

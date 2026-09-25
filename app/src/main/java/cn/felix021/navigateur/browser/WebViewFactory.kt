@@ -7,13 +7,13 @@ import android.webkit.WebView
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import cn.felix021.navigateur.data.BrowserSettings
+import cn.felix021.navigateur.data.UaPresets
 
 /** 所有 WebView 的 WebSettings 集中配置 */
 object WebViewFactory {
 
-    /** 桌面 Chrome UA（Linux 桌面） */
-    const val DESKTOP_UA =
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+    /** 桌面模式 UA（macOS Chrome） */
+    const val DESKTOP_UA = UaPresets.DESKTOP_MAC_UA
 
     fun configure(context: Context, wv: WebView, s: BrowserSettings, desktopMode: Boolean, dark: Boolean) {
         val ws = wv.settings
@@ -43,10 +43,16 @@ object WebViewFactory {
         wv.settings.textZoom = s.textZoomPercent
     }
 
+    /**
+     * UA 决策：预设（非默认）优先，不被桌面模式覆盖；
+     * 仅预设为默认时，桌面模式开关切换 移动 ↔ macOS 桌面 UA。
+     */
     fun applyUserAgent(context: Context, wv: WebView, s: BrowserSettings, desktopMode: Boolean) {
+        val preset = UaPresets.byId(s.uaPresetId)
         wv.settings.userAgentString = when {
+            preset.id == UaPresets.CUSTOM && s.customUserAgent.isNotBlank() -> s.customUserAgent
+            preset.ua != null -> preset.ua
             desktopMode -> DESKTOP_UA
-            s.customUserAgent.isNotBlank() -> s.customUserAgent
             else -> WebSettings.getDefaultUserAgent(context).replace("; wv", ";") // 去 WebView 标记
         }
     }

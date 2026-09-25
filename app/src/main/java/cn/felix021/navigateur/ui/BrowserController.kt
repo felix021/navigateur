@@ -28,6 +28,13 @@ class BrowserController(val activity: MainActivity) {
 
     val savePrompt = mutableStateOf<SavePrompt?>(null)
 
+    /** 浏览页按返回且无页面历史时，先询问再退出 */
+    val exitConfirm = mutableStateOf(false)
+
+    fun exitApp() {
+        activity.finish()
+    }
+
     fun handleCredentials(host: String, user: String, pass: String) {
         if (!container.settings.current.savePasswords) return
         val existing = container.passwords.get(host)
@@ -81,5 +88,37 @@ class BrowserController(val activity: MainActivity) {
         }
         if (passwords) container.passwords.clear()
         Toast.makeText(activity, "已清理", Toast.LENGTH_SHORT).show()
+    }
+
+    /** 已知站点列表（密码库 + 书签域名），用于按站点清理 */
+    fun knownHosts(): List<String> = buildSet {
+        container.passwords.hosts().forEach(::add)
+        container.bookmarks.bookmarks.value.forEach { UrlUtils.hostOf(it.url).takeIf { h -> h.isNotBlank() }?.let(::add) }
+    }.sorted()
+
+    /**
+     * 按站点清理。cookie 无公开按域删除 API，用逐个过期的方式尽力清理；
+     * 站点存储用 WebStorage.deleteOriginData（localStorage/WebSQL）。
+     */
+    fun clearSiteData(host: String, cookies: Boolean, siteStorage: Boolean, passwords: Boolean) {
+        if (cookies) {
+            val cm = CookieManager.getInstance()
+            listOf("https://$host/", "http://$host/").forEach { url ->
+                runCatching {
+                    cm.getCookie(url)?.split(";")?.forEach { pair ->
+                        val name = pair.substringBefore('=').trim()
+                        if (name.isNotEmpty()) {
+                            cm.setCookie(url, "$name=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
+                        }
+                    }
+                }
+            }
+            cm.flush()
+        }
+        if (siteStorage) {
+            runCatching { WebStorage.getInstance().deleteOrigin(host) }
+        }
+        if (passwords) container.passwords.remove(host)
+        Toast.makeText(activity, "已清理 $host", Toast.LENGTH_SHORT).show()
     }
 }

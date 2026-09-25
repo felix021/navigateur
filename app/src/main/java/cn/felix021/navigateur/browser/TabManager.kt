@@ -279,10 +279,11 @@ class TabManager(
 
     private fun applySettings(s: BrowserSettings) {
         val dark = effectiveDark(s)
+        val uaKey = "${s.uaPresetId}|${s.customUserAgent}"
         val first = lastAppliedUa == null
-        val uaChanged = !first && s.customUserAgent != lastAppliedUa
+        val uaChanged = !first && uaKey != lastAppliedUa
         val darkChanged = lastAppliedDark != null && dark != lastAppliedDark
-        lastAppliedUa = s.customUserAgent
+        lastAppliedUa = uaKey
         lastAppliedDark = dark
         if (webViews.isEmpty()) return
         webViews.values.forEach { wv ->
