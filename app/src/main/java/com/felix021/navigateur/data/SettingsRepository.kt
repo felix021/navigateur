@@ -27,6 +27,10 @@ data class BrowserSettings(
     val landscapeFullscreen: Boolean = true,
     /** 横屏底部安全区：显示系统导航条并避让（关闭则完全全屏） */
     val landscapeBottomSafeArea: Boolean = false,
+    /** 广告拦截总开关 */
+    val adBlockEnabled: Boolean = true,
+    /** 广告拦截站点白名单（host，在这些站点完全不拦截） */
+    val adBlockAllowlist: Set<String> = emptySet(),
 )
 
 class SettingsRepository(context: Context) {
@@ -67,6 +71,9 @@ class SettingsRepository(context: Context) {
         landscapeToolbarSide = if (prefs.getString(KEY_LAND_SIDE, "right") == "left") "left" else "right",
         landscapeFullscreen = prefs.getBoolean(KEY_LAND_FULLSCREEN, true),
         landscapeBottomSafeArea = prefs.getBoolean(KEY_LAND_BOTTOM, false),
+        adBlockEnabled = prefs.getBoolean(KEY_ADBLOCK, true),
+        adBlockAllowlist = prefs.getString(KEY_ADBLOCK_ALLOW, "")!!.split(',')
+            .filter { it.isNotBlank() }.toSet(),
     )
 
     private fun persist(s: BrowserSettings) {
@@ -83,7 +90,9 @@ class SettingsRepository(context: Context) {
             .putString(KEY_LAND_SIDE, s.landscapeToolbarSide)
             .putBoolean(KEY_LAND_FULLSCREEN, s.landscapeFullscreen)
             .putBoolean(KEY_LAND_BOTTOM, s.landscapeBottomSafeArea)
-            .apply()
+            .putBoolean(KEY_ADBLOCK, s.adBlockEnabled)
+            .putString(KEY_ADBLOCK_ALLOW, s.adBlockAllowlist.sorted().joinToString(","))
+            .commit() // commit 而非 apply：StringSet/apply 在部分 ROM 上不落盘，设置丢失
     }
 
     /** WebView 网页暗色依赖 Activity 资源处于 night 模式，这里同步 AppCompat 的全局夜间模式 */
@@ -116,5 +125,7 @@ class SettingsRepository(context: Context) {
         const val KEY_LAND_SIDE = "landscape_side"
         const val KEY_LAND_FULLSCREEN = "landscape_fullscreen"
         const val KEY_LAND_BOTTOM = "landscape_bottom_safe"
+        const val KEY_ADBLOCK = "adblock_enabled"
+        const val KEY_ADBLOCK_ALLOW = "adblock_allowlist"
     }
 }

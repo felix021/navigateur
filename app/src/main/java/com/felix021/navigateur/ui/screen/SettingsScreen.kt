@@ -14,6 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -70,6 +72,8 @@ fun SettingsScreen(controller: BrowserController) {
     var showClear by remember { mutableStateOf(false) }
     var showSiteClear by remember { mutableStateOf(false) }
     var showLandSide by remember { mutableStateOf(false) }
+    var showAdAllow by remember { mutableStateOf(false) }
+    val adStatus by controller.container.adBlock.status.collectAsState()
 
     val update: ((com.felix021.navigateur.data.BrowserSettings) -> com.felix021.navigateur.data.BrowserSettings) -> Unit =
         { controller.container.settings.update(it) }
@@ -160,6 +164,23 @@ fun SettingsScreen(controller: BrowserController) {
                 value = uaDisplay(settings),
             ) { showUa = true }
 
+            SectionHeader("广告拦截")
+            SwitchItem(
+                title = "拦截广告",
+                subtitle = "基于 EasyList + EasyList China，拦截请求并隐藏页面广告元素",
+                checked = settings.adBlockEnabled,
+                onChange = { enabled -> update { it.copy(adBlockEnabled = enabled) } },
+            )
+            SettingItem(
+                title = "更新广告规则",
+                value = adRulesLabel(adStatus),
+            ) { controller.container.adBlock.update() }
+            SettingItem(
+                title = "站点白名单",
+                value = if (settings.adBlockAllowlist.isEmpty()) "无（全部站点生效）"
+                else "${settings.adBlockAllowlist.size} 个站点不拦截",
+            ) { showAdAllow = true }
+
             SectionHeader("隐私")
             SettingItem(
                 title = "清理浏览数据",
@@ -237,6 +258,15 @@ fun SettingsScreen(controller: BrowserController) {
                 update { s -> s.copy(landscapeToolbarSide = it) }
                 showLandSide = false
             },
+        )
+    }
+    if (showAdAllow) {
+        AdAllowlistDialog(
+            hosts = settings.adBlockAllowlist,
+            onRemove = { host ->
+                update { s -> s.copy(adBlockAllowlist = s.adBlockAllowlist - host) }
+            },
+            onDismiss = { showAdAllow = false },
         )
     }
     if (showUa) {
@@ -374,6 +404,52 @@ private fun CheckRow(label: String, checked: Boolean, onChange: (Boolean) -> Uni
         androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = onChange)
         Text(label, style = MaterialTheme.typography.bodyMedium)
     }
+}
+
+private fun adRulesLabel(s: com.felix021.navigateur.data.AdBlockStatus): String = when {
+    s.updating -> "正在更新…"
+    s.lastError != null -> "更新失败：${s.lastError}（点击重试）"
+    s.updatedAt > 0 -> {
+        val d = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.CHINA).format(java.util.Date(s.updatedAt))
+        "${s.ruleCount} 条规则 · $d 更新"
+    }
+    else -> "${s.ruleCount} 条规则 · 内置版本（点击在线更新）"
+}
+
+/** 广告拦截站点白名单管理 */
+@Composable
+private fun AdAllowlistDialog(
+    hosts: Set<String>,
+    onRemove: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("站点白名单") },
+        text = {
+            Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState())) {
+                if (hosts.isEmpty()) {
+                    Text(
+                        "白名单为空，广告拦截在所有站点生效。\n浏览器菜单里可对当前站点单独关闭。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                hosts.sorted().forEach { h ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(h, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        IconButton(onClick = { onRemove(h) }) {
+                            Icon(Icons.Filled.Close, contentDescription = "移除", modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("完成") } },
+    )
 }
 
 @Composable

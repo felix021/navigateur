@@ -111,18 +111,26 @@ object JsScripts {
         """.trimIndent()
     }
 
+    /** 替换 id=<elementId> 的样式元素，空 css 即清除（页面级持久样式注入的通用形态） */
+    fun styleCss(elementId: String, css: String): String =
+        "var css = " + JSONObject.quote(css) + ";" + """
+            (function () {
+              var el = document.getElementById(${JSONObject.quote(elementId)});
+              if (!css) {
+                if (el) el.parentNode.removeChild(el);
+                return;
+              }
+              if (!el) { el = document.createElement('style'); el.id = ${JSONObject.quote(elementId)}; document.head.appendChild(el); }
+              el.textContent = css;
+            })();
+        """.trimIndent()
+
     /** 字体覆盖：替换 id=nv-font 的样式元素，空 family 即清除覆盖 */
     fun fontCss(family: String): String {
         val fam = family.replace(Regex("[^a-zA-Z0-9 ,\\-']"), "").trim()
         val rule = if (fam.isEmpty()) ""
         else "body,input,textarea,select,button{font-family:$fam !important;}"
-        return """
-            (function () {
-              var el = document.getElementById('nv-font');
-              if (!el) { el = document.createElement('style'); el.id = 'nv-font'; document.head.appendChild(el); }
-              el.textContent = ${JSONObject.quote(rule)};
-            })();
-        """.trimIndent()
+        return styleCss("nv-font", rule)
     }
 
     /** 自动填充：走原生 value setter + 派发 input/change 事件，兼容 React/Vue 受控输入 */

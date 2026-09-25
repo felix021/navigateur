@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
  */
 class TabManager(
     val context: Context,
-    private val container: AppContainer,
+    internal val container: AppContainer,
     private val onCredentials: (host: String, user: String, pass: String) -> Unit,
 ) {
     private val handler = Handler(Looper.getMainLooper())
@@ -47,6 +47,26 @@ class TabManager(
     private var lastAppliedUa: String? = null
     private var lastAppliedDark: Boolean? = null
     private var lastAppliedZoom: Int? = null
+    private var lastAppliedAd: String? = null
+
+    /** 当前标签页面 host 的缓存（主线程写、请求线程读，供 shouldInterceptRequest 白名单判断） */
+    @Volatile
+    var currentHost: String = ""
+        private set
+
+    internal fun refreshCurrentHost(tabId: String, url: String?) {
+        if (tabId != _currentId.value || url.isNullOrEmpty()) return
+        val h = UrlUtils.hostOf(url)
+        if (UrlUtils.isHome(url)) {
+            if (currentHost.isNotEmpty()) currentHost = ""
+        } else if (h != currentHost) {
+            currentHost = h
+        }
+    }
+
+    /** 广告拦截生效状态的指纹（开关 + 白名单） */
+    private fun BrowserSettings.adBlockKey(): String =
+        (if (adBlockEnabled) "on|" else "off|") + adBlockAllowlist.sorted().joinToString(",")
 
     val current: TabState? get() = _tabs.value.firstOrNull { it.id == _currentId.value }
     val currentWebView: WebView? get() = _currentId.value?.let { webViews[it] }
@@ -189,6 +209,7 @@ class TabManager(
     fun refreshNav() {
         val wv = currentWebView
         nav.value = (wv?.canGoBack() == true) to (wv?.canGoForward() == true)
+        current?.let { refreshCurrentHost(it.id, it.url) }
     }
 
     // ---------- 导航 ----------
@@ -271,6 +292,8 @@ class TabManager(
         val s = container.settings.current
         wv.evaluateJavascript(JsScripts.fontCss(s.fontFamily), null)
         wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
+        // 广告元素隐藏（请求拦截在 WebViewClient.shouldInterceptRequest）
+        injectAdHide(wv, url)
         // 桌面模式标签：覆盖 viewport 为宽屏，让响应式站点出桌面布局
         if (tabOf(wv)?.desktopMode == true) {
             wv.evaluateJavascript(JsScripts.DESKTOP_VIEWPORT, null)
@@ -291,6 +314,18 @@ class TabManager(
     fun injectCaptureHook(wv: WebView) {
         if (!container.settings.current.savePasswords) return
         wv.evaluateJavascript(JsScripts.CAPTURE_HOOK, null)
+    }
+
+    /** 广告元素隐藏 CSS：替换 id=nv-adhide 的样式元素，空 CSS 即移除（关白名单场景） */
+    private fun injectAdHide(wv: WebView, url: String) {
+        val s = container.settings.current
+        val host = UrlUtils.hostOf(url)
+        val css = if (s.adBlockEnabled && host.isNotEmpty() &&
+            s.adBlockAllowlist.none { host == it || host.endsWith(".$it") }
+        ) {
+            container.adBlockEngine.hideCss(host)
+        } else ""
+        wv.evaluateJavascript(JsScripts.styleCss("nv-adhide", css), null)
     }
 
     /** 记录浏览历史（同 URL 更新时间，标题取当前标签标题） */
@@ -341,9 +376,11 @@ class TabManager(
         val uaChanged = !first && uaKey != lastAppliedUa
         val darkChanged = lastAppliedDark != null && dark != lastAppliedDark
         val zoomChanged = lastAppliedZoom != null && s.pageZoomPercent != lastAppliedZoom
+        val adChanged = lastAppliedAd != null && s.adBlockKey() != lastAppliedAd
         lastAppliedUa = uaKey
         lastAppliedDark = dark
         lastAppliedZoom = s.pageZoomPercent
+        lastAppliedAd = s.adBlockKey()
         if (webViews.isEmpty()) return
         webViews.values.forEach { wv ->
             WebViewFactory.applyLiveSettings(wv, s)
@@ -351,6 +388,11 @@ class TabManager(
             if (zoomChanged) {
                 // CSS zoom 即时生效，无需刷新
                 wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
+            }
+            if (adChanged) {
+                // 拦截对后续请求立即生效；隐藏 CSS 重注入（关→开或白名单变化时移除/添加）
+                val tab = tabOf(wv)
+                if (tab != null && !UrlUtils.isHome(tab.url)) injectAdHide(wv, tab.url)
             }
             val tab = tabOf(wv)
             if (uaChanged) {

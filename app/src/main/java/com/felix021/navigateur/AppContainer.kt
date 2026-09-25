@@ -1,6 +1,8 @@
 package com.felix021.navigateur
 
 import android.content.Context
+import com.felix021.navigateur.browser.AdBlockEngine
+import com.felix021.navigateur.data.AdBlockRepository
 import com.felix021.navigateur.data.BookmarkRepository
 import com.felix021.navigateur.data.HistoryRepository
 import com.felix021.navigateur.data.PasswordStore
@@ -15,4 +17,6 @@ class AppContainer(context: Context) {
     val passwords = PasswordStore(appContext)
     val tabSessions = TabSessionStore(appContext)
     val history = HistoryRepository(appContext)
+    val adBlockEngine = AdBlockEngine()
+    val adBlock = AdBlockRepository(appContext, adBlockEngine).also { it.load() }
 }

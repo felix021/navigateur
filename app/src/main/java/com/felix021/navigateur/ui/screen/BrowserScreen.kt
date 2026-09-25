@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -510,6 +511,29 @@ private fun BrowserMenuContent(
                 onZoomOpen(true)
             },
         )
+        // 当前站点广告拦截开关（仅广告拦截开启时展示，避免误导）
+        if (settings.adBlockEnabled && current != null && !UrlUtils.isHome(current.url)) {
+            val host = UrlUtils.hostOf(current.url)
+            val allowlisted = settings.adBlockAllowlist.any { host == it || host.endsWith(".$it") }
+            DropdownMenuItem(
+                text = {
+                    Text(if (allowlisted) "在此站点拦截广告" else "不拦截此站点的广告")
+                },
+                leadingIcon = { Icon(Icons.Filled.Block, null) },
+                onClick = {
+                    onDismiss()
+                    if (host.isNotEmpty()) {
+                        controller.container.settings.update { s ->
+                            s.copy(
+                                adBlockAllowlist =
+                                if (allowlisted) s.adBlockAllowlist - host else s.adBlockAllowlist + host,
+                            )
+                        }
+                        controller.tabManager.reloadCurrent()
+                    }
+                },
+            )
+        }
         DropdownMenuItem(
             text = { Text("书签") },
             leadingIcon = { Icon(Icons.Filled.Bookmarks, null) },

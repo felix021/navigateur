@@ -13,6 +13,8 @@
 - **密码记录**：登录表单捕获（含无 form 的 fetch/XHR 登录、同域 iframe）→ 询问保存（Android Keystore AES-256-GCM 加密落盘）→ 自动填充
 - **清理数据**：Cookie / 站点存储（localStorage 等）/ 缓存 / 表单数据 / 已保存密码
 - **下载**：系统 DownloadManager 接管，落公共下载目录、通知栏进度；页面内常见下载链接与地址栏直输文件 URL 均可
+- **广告拦截**：EasyList + EasyList China（域名拦截 + 元素隐藏 CSS 注入）；
+  设置页总开关 / 更新规则 / 站点白名单，浏览器菜单可对当前站点单独关闭
 - **搜索引擎**：DDG / Google / Bing / 百度
 
 ## 构建
@@ -30,4 +32,5 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - 跨域 iframe 表单、passkey 登录无法捕获
 - 下载：无扩展名且无 `download` 属性的重定向下载链接（个别网盘）可能不触发；
   新版 WebView（15x）已不回调 `onDownloadStart`，靠页面层拦截兜底
-- 无图片/资源拦截（不做广告过滤）
+- 广告拦截为 EasyList 主流子集（整域拦/例外/域名级元素隐藏），路径级与通用元素规则未解析；
+  无扩展名的纯重定向下载类广告资源可能漏拦
