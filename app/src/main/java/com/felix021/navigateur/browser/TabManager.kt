@@ -52,25 +52,32 @@ class TabManager(
     private var lastAppliedRemote: Boolean? = null
     private var erudaJs: String? = null
 
-    /** 页面内开发者工具：注入（幂等）/ 移除 eruda */
-    private fun injectDevTools(wv: WebView, enabled: Boolean) {
+    /**
+     * 页面内开发者工具：注入（幂等）/ 移除 eruda。
+     * [desktopMode] 决定视觉补偿系数 z：桌面模式整页 fit 到屏幕（1280→360 CSS 宽，
+     * 缩放 0.28），面板/按钮要按 1280/980 反向放大，才能和手机模式观感一致。
+     */
+    private fun injectDevTools(wv: WebView, enabled: Boolean, desktopMode: Boolean = false) {
         if (enabled) {
             val src = erudaJs ?: runCatching {
                 context.assets.open("devtools/eruda.min.js").bufferedReader().readText()
             }.getOrNull()?.also { erudaJs = it } ?: return
+            val z = if (desktopMode) 1280f / 980f else 1f
             wv.evaluateJavascript(
                 // src 前后换行必不可少：eruda.min.js 以 //# sourceMappingURL 行注释结尾
                 "(function(){if(window.__nvEruda)return;\n" + src + "\n" +
                     "eruda.init();window.__nvEruda=1;" +
-                    "try{var lv=document.documentElement.clientWidth||window.innerWidth;" +
-                    "var vw=window.innerWidth||lv;" +
-                    "var z=lv>vw*1.5?lv/vw:1;" + // 桌面模式宽视口：反向补偿 overview 缩小
-                    // eruda 3 是 Shadow DOM：外部样式进不去，入口按钮放大要注入 shadowRoot
+                    "try{var z=$z;" +
                     "var root=document.getElementById('eruda');" +
-                    "if(root){root.style.zoom=(1.3*z);" +
-                    "if(root.shadowRoot){var st=document.createElement('style');" +
-                    "st.textContent='.eruda-entry-btn{transform:scale(1.7);transform-origin:50% 50%;}';" +
-                    "root.shadowRoot.appendChild(st);}}}catch(e){}" +
+                    // eruda 3 是 Shadow DOM：外部样式进不去，样式都要注入 shadowRoot。
+                    // zoom 只能挂面板不能挂 root：root 上的 zoom 会连带缩放入口按钮的
+                    // relative 偏移，把它推出视口（916*1.3=1191 > 视口宽 980）
+                    "if(root&&root.shadowRoot){" +
+                    "var dev=root.shadowRoot.querySelector('.eruda-dev-tools');" +
+                    "if(dev)dev.style.zoom=(1.3*z);" +
+                    "var st=document.createElement('style');" +
+                    "st.textContent='.eruda-entry-btn{transform:scale('+(1.7*z)+');transform-origin:50% 50%;}';" +
+                    "root.shadowRoot.appendChild(st);}}catch(e){}" +
                     "})();",
                 null,
             )
@@ -91,9 +98,14 @@ class TabManager(
         if (tabId != _currentId.value || url.isNullOrEmpty()) return
         val h = UrlUtils.hostOf(url)
         if (UrlUtils.isHome(url)) {
-            if (currentHost.isNotEmpty()) currentHost = ""
+            if (currentHost.isNotEmpty()) {
+                currentHost = ""
+                container.proxy.onHostChanged("")
+            }
         } else if (h != currentHost) {
             currentHost = h
+            // AutoProxy 语义（autoDefault=direct）按主文档 host 动态开关代理
+            container.proxy.onHostChanged(h)
         }
     }
 
@@ -327,11 +339,10 @@ class TabManager(
         wv.evaluateJavascript(JsScripts.zoomCss(s.pageZoomPercent), null)
         // 广告元素隐藏（请求拦截在 WebViewClient.shouldInterceptRequest）
         injectAdHide(wv, url)
-        if (s.devTools) injectDevTools(wv, true)
-        // 桌面模式标签：覆盖 viewport 为宽屏，让响应式站点出桌面布局
-        if (tabOf(wv)?.desktopMode == true) {
-            wv.evaluateJavascript(JsScripts.DESKTOP_VIEWPORT, null)
-        }
+        val desktop = tabOf(wv)?.desktopMode == true
+        // 桌面模式先改 viewport（fit 整页），再注 eruda（z 补偿依赖桌面模式标记）
+        if (desktop) wv.evaluateJavascript(JsScripts.DESKTOP_VIEWPORT, null)
+        if (s.devTools) injectDevTools(wv, true, desktop)
         injectCaptureHook(wv)
         wv.evaluateJavascript(JsScripts.DOWNLOAD_INTERCEPT, null)
         if (url.startsWith("https://")) {
@@ -433,8 +444,8 @@ class TabManager(
                 val tab = tabOf(wv)
                 if (tab != null && !UrlUtils.isHome(tab.url)) injectAdHide(wv, tab.url)
             }
-            if (devChanged) injectDevTools(wv, s.devTools)
             val tab = tabOf(wv)
+            if (devChanged) injectDevTools(wv, s.devTools, tab?.desktopMode == true)
             if (uaChanged) {
                 WebViewFactory.applyUserAgent(context, wv, s, tab?.desktopMode == true)
                 if (tab != null && !UrlUtils.isHome(tab.url)) wv.reload()

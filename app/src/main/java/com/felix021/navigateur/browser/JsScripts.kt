@@ -87,7 +87,12 @@ object JsScripts {
         })();
     """.trimIndent()
 
-    /** 桌面模式：强制宽视口，避免响应式站点按手机宽度出移动布局 */
+    /**
+     * 桌面模式：强制宽视口，避免响应式站点按手机宽度出移动布局。
+     * 不能带 initial-scale=1：那会锁死 1:1 渲染，屏幕只能看到页面左上角
+     * （eruda 等 fixed/absolute 于 layout 右下的元素直接不可见）；
+     * 只写 width 时 WebView 按 loadWithOverviewMode 整页 fit 到屏幕。
+     */
     val DESKTOP_VIEWPORT = """
         (function () {
           var m = document.querySelector('meta[name=viewport]');
@@ -96,7 +101,7 @@ object JsScripts {
             m.setAttribute('name', 'viewport');
             (document.head || document.documentElement).appendChild(m);
           }
-          m.setAttribute('content', 'width=1280, initial-scale=1');
+          m.setAttribute('content', 'width=1280');
         })();
     """.trimIndent()
 
