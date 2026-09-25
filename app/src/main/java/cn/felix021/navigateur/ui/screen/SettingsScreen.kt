@@ -68,6 +68,7 @@ fun SettingsScreen(controller: BrowserController) {
     var showUaCustom by remember { mutableStateOf(false) }
     var showClear by remember { mutableStateOf(false) }
     var showSiteClear by remember { mutableStateOf(false) }
+    var showLandSide by remember { mutableStateOf(false) }
 
     val update: ((cn.felix021.navigateur.data.BrowserSettings) -> cn.felix021.navigateur.data.BrowserSettings) -> Unit =
         { controller.container.settings.update(it) }
@@ -129,6 +130,16 @@ fun SettingsScreen(controller: BrowserController) {
                 title = "字体",
                 value = FONT_OPTIONS.firstOrNull { it.first == settings.fontFamily }?.second.orEmpty(),
             ) { showFont = true }
+            SettingItem(
+                title = "横屏工具栏位置",
+                value = if (settings.landscapeToolbarSide == "left") "左手边" else "右手边",
+            ) { showLandSide = true }
+            SwitchItem(
+                title = "横屏全屏",
+                subtitle = "横屏时隐藏系统状态栏，充分利用屏幕高度",
+                checked = settings.landscapeFullscreen,
+                onChange = { enabled -> update { it.copy(landscapeFullscreen = enabled) } },
+            )
 
             SectionHeader("网站")
             SwitchItem(
@@ -205,6 +216,19 @@ fun SettingsScreen(controller: BrowserController) {
             onSelect = {
                 update { s -> s.copy(fontFamily = it.first) }
                 showFont = false
+            },
+        )
+    }
+    if (showLandSide) {
+        SingleChoiceDialog(
+            title = "横屏工具栏位置",
+            options = listOf("left", "right"),
+            selected = settings.landscapeToolbarSide,
+            label = { if (it == "left") "左手边" else "右手边" },
+            onDismiss = { showLandSide = false },
+            onSelect = {
+                update { s -> s.copy(landscapeToolbarSide = it) }
+                showLandSide = false
             },
         )
     }

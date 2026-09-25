@@ -1,11 +1,20 @@
 package cn.felix021.navigateur.ui.screen
 
+import android.content.res.Configuration
+import android.net.http.SslCertificate
+import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,9 +24,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -25,9 +36,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DesktopWindows
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
@@ -35,7 +48,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tab
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -57,20 +72,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-import android.widget.FrameLayout
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import cn.felix021.navigateur.browser.TabState
 import cn.felix021.navigateur.ui.BrowserController
 import cn.felix021.navigateur.ui.Screen
 import cn.felix021.navigateur.util.UrlUtils
+import java.util.Date
 
 @Composable
 fun BrowserScreen(controller: BrowserController) {
@@ -80,6 +99,21 @@ fun BrowserScreen(controller: BrowserController) {
     val nav = controller.tabManager.nav.value
     val bookmarks by controller.container.bookmarks.bookmarks.collectAsState()
     val bookmarked = current != null && bookmarks.any { it.url == current.url }
+    val settings by controller.container.settings.settings.collectAsState()
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // 横屏默认全屏（隐藏状态栏），可在设置中关闭
+    LaunchedEffect(isLandscape, settings.landscapeFullscreen) {
+        val window = controller.activity.window
+        val insetsCtrl = WindowCompat.getInsetsController(window, window.decorView)
+        if (isLandscape && settings.landscapeFullscreen) {
+            insetsCtrl.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            insetsCtrl.hide(WindowInsetsCompat.Type.statusBars())
+        } else {
+            insetsCtrl.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
 
     // 返回键始终接管：有页面历史则后退，否则询问退出
     BackHandler {
@@ -96,6 +130,23 @@ fun BrowserScreen(controller: BrowserController) {
         )
     }
 
+    if (isLandscape) {
+        LandscapeBrowser(controller, current, bookmarked, nav, tabs.size, settings.landscapeToolbarSide)
+    } else {
+        PortraitBrowser(controller, current, bookmarked, nav, tabs.size)
+    }
+}
+
+// ---------- 竖屏：顶部地址栏 + 底部工具条 ----------
+
+@Composable
+private fun PortraitBrowser(
+    controller: BrowserController,
+    current: TabState?,
+    bookmarked: Boolean,
+    nav: Pair<Boolean, Boolean>,
+    tabCount: Int,
+) {
     Column(
         Modifier
             .fillMaxSize()
@@ -113,22 +164,275 @@ fun BrowserScreen(controller: BrowserController) {
             )
         }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            AndroidView(
-                factory = { ctx ->
-                    FrameLayout(ctx).also { controller.tabManager.webContainer = it }
-                },
-                update = { controller.tabManager.syncWebView() },
-                modifier = Modifier.matchParentSize(),
-            )
-            LaunchedEffect(currentId, tabs.size) { controller.tabManager.syncWebView() }
-            if (current == null || UrlUtils.isHome(current.url)) {
-                StartPage(controller, Modifier.matchParentSize())
-            }
-            current?.error?.let { err ->
-                ErrorOverlay(err) { controller.tabManager.reloadCurrent() }
+            BrowserContent(controller, current)
+        }
+        BottomBar(controller, current, bookmarked, nav, tabCount)
+    }
+}
+
+// ---------- 横屏：侧边工具条 + 浮层地址栏 ----------
+
+@Composable
+private fun LandscapeBrowser(
+    controller: BrowserController,
+    current: TabState?,
+    bookmarked: Boolean,
+    nav: Pair<Boolean, Boolean>,
+    tabCount: Int,
+    toolbarSide: String,
+) {
+    var urlPanelOpen by remember { mutableStateOf(false) }
+    var certOpen by remember { mutableStateOf(false) }
+    var menuOpen by remember { mutableStateOf(false) }
+    var zoomOpen by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
+
+    if (certOpen) {
+        CertificateDialog(controller, onDismiss = { certOpen = false })
+    }
+
+    Row(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        val content = @Composable {
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                BrowserContent(controller, current)
+                if (current?.loading == true) {
+                    LinearProgressIndicator(
+                        progress = { current.progress.coerceIn(0, 100) / 100f },
+                        modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(2f),
+                    )
+                }
+                // 浮层地址栏：输入 / 建议 / 复制 / 证书
+                if (urlPanelOpen) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().zIndex(3f),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 8.dp,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Omnibox(
+                                controller = controller,
+                                url = current?.url.orEmpty(),
+                                onSubmit = {
+                                    controller.loadOrSearch(it)
+                                    urlPanelOpen = false
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(onClick = {
+                                val url = current?.url.orEmpty()
+                                if (url.isNotEmpty()) {
+                                    clipboard.setText(AnnotatedString(url))
+                                    Toast.makeText(controller.activity, "已复制网址", Toast.LENGTH_SHORT).show()
+                                }
+                            }) {
+                                Icon(Icons.Filled.ContentCopy, contentDescription = "复制网址")
+                            }
+                            IconButton(
+                                enabled = current?.url?.startsWith("https://") == true,
+                                onClick = { certOpen = true },
+                            ) {
+                                Icon(Icons.Filled.VerifiedUser, contentDescription = "证书")
+                            }
+                            IconButton(onClick = { urlPanelOpen = false }) {
+                                Icon(Icons.Filled.Close, contentDescription = "关闭")
+                            }
+                        }
+                    }
+                }
             }
         }
-        BottomBar(controller, current, bookmarked, nav, tabs.size)
+        val toolbar = @Composable {
+            SideToolbar(
+                controller = controller,
+                current = current,
+                bookmarked = bookmarked,
+                nav = nav,
+                tabCount = tabCount,
+                onOpenUrl = { urlPanelOpen = true },
+                menuOpen = menuOpen,
+                onMenuOpenChange = { menuOpen = it },
+                zoomOpen = zoomOpen,
+                onZoomOpenChange = { zoomOpen = it },
+            )
+        }
+        if (toolbarSide == "left") {
+            toolbar()
+            content()
+        } else {
+            content()
+            toolbar()
+        }
+    }
+}
+
+/** 横屏侧边工具条 */
+@Composable
+private fun SideToolbar(
+    controller: BrowserController,
+    current: TabState?,
+    bookmarked: Boolean,
+    nav: Pair<Boolean, Boolean>,
+    tabCount: Int,
+    onOpenUrl: () -> Unit,
+    menuOpen: Boolean,
+    onMenuOpenChange: (Boolean) -> Unit,
+    zoomOpen: Boolean,
+    onZoomOpenChange: (Boolean) -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .width(52.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            IconButton(onClick = onOpenUrl) {
+                Icon(Icons.Filled.Language, contentDescription = "地址")
+            }
+            IconButton(enabled = nav.first, onClick = { controller.tabManager.goBack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "后退")
+            }
+            IconButton(enabled = nav.second, onClick = { controller.tabManager.goForward() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "前进")
+            }
+            IconButton(onClick = { controller.tabManager.goHome() }) {
+                Icon(Icons.Filled.Home, contentDescription = "主页")
+            }
+            IconButton(
+                enabled = current != null && !UrlUtils.isHome(current.url),
+                onClick = { controller.toggleBookmark() },
+            ) {
+                Icon(
+                    Icons.Filled.Star,
+                    contentDescription = "收藏",
+                    tint = if (bookmarked) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = { controller.screen.value = Screen.Tabs }) {
+                BadgedBox(badge = { Badge { Text(tabCount.toString()) } }) {
+                    Icon(Icons.Filled.Tab, contentDescription = "标签")
+                }
+            }
+            Box {
+                IconButton(onClick = { onMenuOpenChange(true) }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "菜单")
+                }
+                BrowserMenuContent(
+                    controller = controller,
+                    current = current,
+                    menuOpen = menuOpen,
+                    onDismiss = { onMenuOpenChange(false) },
+                    zoomOpen = zoomOpen,
+                    onZoomOpen = onZoomOpenChange,
+                )
+            }
+        }
+    }
+}
+
+// ---------- 共享组件 ----------
+
+/** WebView 容器 + 起始页 + 错误页 */
+@Composable
+private fun BrowserContent(controller: BrowserController, current: TabState?) {
+    Box(Modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { ctx ->
+                FrameLayout(ctx).also { controller.tabManager.webContainer = it }
+            },
+            update = { controller.tabManager.syncWebView() },
+            modifier = Modifier.matchParentSize(),
+        )
+        LaunchedEffect(current?.id) { controller.tabManager.syncWebView() }
+        if (current == null || UrlUtils.isHome(current.url)) {
+            StartPage(controller, Modifier.matchParentSize())
+        }
+        current?.error?.let { err ->
+            ErrorOverlay(err) { controller.tabManager.reloadCurrent() }
+        }
+    }
+}
+
+/** ⋮ 菜单内容（竖屏底栏 / 横屏侧栏共用） */
+@Composable
+private fun BrowserMenuContent(
+    controller: BrowserController,
+    current: TabState?,
+    menuOpen: Boolean,
+    onDismiss: () -> Unit,
+    zoomOpen: Boolean,
+    onZoomOpen: (Boolean) -> Unit,
+) {
+    val settings by controller.container.settings.settings.collectAsState()
+    if (zoomOpen) {
+        ZoomDialog(
+            zoomPercent = settings.pageZoomPercent,
+            onZoom = { pct ->
+                controller.container.settings.update { s -> s.copy(pageZoomPercent = pct) }
+            },
+            onDismiss = { onZoomOpen(false) },
+        )
+    }
+    DropdownMenu(expanded = menuOpen, onDismissRequest = onDismiss) {
+        DropdownMenuItem(
+            text = { Text("新建标签") },
+            leadingIcon = { Icon(Icons.Filled.Add, null) },
+            onClick = {
+                onDismiss()
+                controller.tabManager.newTab()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text("刷新") },
+            leadingIcon = { Icon(Icons.Filled.Refresh, null) },
+            onClick = {
+                onDismiss()
+                controller.tabManager.reloadCurrent()
+            },
+        )
+        DropdownMenuItem(
+            text = { Text("桌面模式") },
+            leadingIcon = { Icon(Icons.Filled.DesktopWindows, null) },
+            trailingIcon = if (current?.desktopMode == true) {
+                { Icon(Icons.Filled.Check, null) }
+            } else null,
+            onClick = {
+                onDismiss()
+                current?.let { controller.tabManager.setDesktopMode(it.id, !it.desktopMode) }
+            },
+        )
+        DropdownMenuItem(
+            text = { Text("页面缩放（${settings.pageZoomPercent}%）") },
+            leadingIcon = { Icon(Icons.Filled.ZoomIn, null) },
+            onClick = {
+                onDismiss()
+                onZoomOpen(true)
+            },
+        )
+        DropdownMenuItem(
+            text = { Text("书签") },
+            leadingIcon = { Icon(Icons.Filled.Bookmarks, null) },
+            onClick = {
+                onDismiss()
+                controller.screen.value = Screen.Bookmarks
+            },
+        )
+        DropdownMenuItem(
+            text = { Text("设置") },
+            leadingIcon = { Icon(Icons.Filled.Settings, null) },
+            onClick = {
+                onDismiss()
+                controller.screen.value = Screen.Settings
+            },
+        )
     }
 }
 
@@ -147,10 +451,53 @@ private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
+/** HTTPS 证书信息（来自当前 WebView 的主资源证书） */
+@Composable
+private fun CertificateDialog(controller: BrowserController, onDismiss: () -> Unit) {
+    val cert: SslCertificate? = controller.tabManager.currentWebView?.certificate
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("证书信息") },
+        text = {
+            if (cert == null) {
+                Text("当前页面没有可用证书（非 HTTPS，或页面已被替换）")
+            } else {
+                Column {
+                    CertRow("颁发给", cert.issuedTo.toString())
+                    CertRow("颁发者", cert.issuedBy.toString())
+                    CertRow("生效时间", formatTime(cert.validNotBeforeDate))
+                    CertRow("过期时间", formatTime(cert.validNotAfterDate))
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
+    )
+}
+
+private fun formatTime(date: Date?): String =
+    date?.let { java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(it) } ?: "—"
+
+@Composable
+private fun CertRow(label: String, value: String) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(value, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
 private data class OmniSuggestion(val url: String, val title: String, val fromBookmark: Boolean)
 
 @Composable
-private fun Omnibox(controller: BrowserController, url: String, onSubmit: (String) -> Unit) {
+private fun Omnibox(
+    controller: BrowserController,
+    url: String,
+    onSubmit: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var value by remember { mutableStateOf("") }
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
@@ -174,7 +521,7 @@ private fun Omnibox(controller: BrowserController, url: String, onSubmit: (Strin
         (bm + hi).distinctBy { it.url }.take(6)
     } else emptyList()
 
-    Box(Modifier.fillMaxWidth()) {
+    Box(modifier) {
         // 输入建议面板，浮在页面内容之上
         if (suggestions.isNotEmpty()) {
             Surface(
@@ -275,7 +622,7 @@ private fun Omnibox(controller: BrowserController, url: String, onSubmit: (Strin
     }
 }
 
-/** 页面缩放对话框：滑块实时改 textZoom */
+/** 页面缩放对话框：滑块实时改整体缩放 */
 @Composable
 private fun ZoomDialog(
     zoomPercent: Int,
@@ -319,16 +666,6 @@ private fun BottomBar(
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     var zoomOpen by remember { mutableStateOf(false) }
-    val settings by controller.container.settings.settings.collectAsState()
-    if (zoomOpen) {
-        ZoomDialog(
-            zoomPercent = settings.pageZoomPercent,
-            onZoom = { pct ->
-                controller.container.settings.update { s -> s.copy(pageZoomPercent = pct) }
-            },
-            onDismiss = { zoomOpen = false },
-        )
-    }
     Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().height(52.dp),
@@ -364,59 +701,14 @@ private fun BottomBar(
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(Icons.Filled.MoreVert, contentDescription = "菜单")
                 }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text("新建标签") },
-                        leadingIcon = { Icon(Icons.Filled.Add, null) },
-                        onClick = {
-                            menuOpen = false
-                            controller.tabManager.newTab()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("刷新") },
-                        leadingIcon = { Icon(Icons.Filled.Refresh, null) },
-                        onClick = {
-                            menuOpen = false
-                            controller.tabManager.reloadCurrent()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("桌面模式") },
-                        leadingIcon = { Icon(Icons.Filled.DesktopWindows, null) },
-                        trailingIcon = if (current?.desktopMode == true) {
-                            { Icon(Icons.Filled.Check, null) }
-                        } else null,
-                        onClick = {
-                            menuOpen = false
-                            current?.let { controller.tabManager.setDesktopMode(it.id, !it.desktopMode) }
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("页面缩放（${settings.pageZoomPercent}%）") },
-                        leadingIcon = { Icon(Icons.Filled.ZoomIn, null) },
-                        onClick = {
-                            menuOpen = false
-                            zoomOpen = true
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("书签") },
-                        leadingIcon = { Icon(Icons.Filled.Bookmarks, null) },
-                        onClick = {
-                            menuOpen = false
-                            controller.screen.value = Screen.Bookmarks
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("设置") },
-                        leadingIcon = { Icon(Icons.Filled.Settings, null) },
-                        onClick = {
-                            menuOpen = false
-                            controller.screen.value = Screen.Settings
-                        },
-                    )
-                }
+                BrowserMenuContent(
+                    controller = controller,
+                    current = current,
+                    menuOpen = menuOpen,
+                    onDismiss = { menuOpen = false },
+                    zoomOpen = zoomOpen,
+                    onZoomOpen = { zoomOpen = it },
+                )
             }
         }
     }

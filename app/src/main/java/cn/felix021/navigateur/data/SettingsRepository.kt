@@ -21,6 +21,10 @@ data class BrowserSettings(
     val pageZoomPercent: Int = 100,
     val themeMode: ThemeMode = ThemeMode.FOLLOW_SYSTEM,
     val savePasswords: Boolean = true,
+    /** 横屏侧边工具栏位置：right / left */
+    val landscapeToolbarSide: String = "right",
+    /** 横屏默认全屏（隐藏系统状态栏） */
+    val landscapeFullscreen: Boolean = true,
 )
 
 class SettingsRepository(context: Context) {
@@ -58,6 +62,8 @@ class SettingsRepository(context: Context) {
             ThemeMode.valueOf(prefs.getString(KEY_THEME, ThemeMode.FOLLOW_SYSTEM.name)!!)
         }.getOrDefault(ThemeMode.FOLLOW_SYSTEM),
         savePasswords = prefs.getBoolean(KEY_SAVEPW, true),
+        landscapeToolbarSide = if (prefs.getString(KEY_LAND_SIDE, "right") == "left") "left" else "right",
+        landscapeFullscreen = prefs.getBoolean(KEY_LAND_FULLSCREEN, true),
     )
 
     private fun persist(s: BrowserSettings) {
@@ -71,6 +77,8 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_ZOOM, s.pageZoomPercent)
             .putString(KEY_THEME, s.themeMode.name)
             .putBoolean(KEY_SAVEPW, s.savePasswords)
+            .putString(KEY_LAND_SIDE, s.landscapeToolbarSide)
+            .putBoolean(KEY_LAND_FULLSCREEN, s.landscapeFullscreen)
             .apply()
     }
 
@@ -101,5 +109,7 @@ class SettingsRepository(context: Context) {
         const val KEY_ZOOM = "text_zoom"
         const val KEY_THEME = "theme_mode"
         const val KEY_SAVEPW = "save_passwords"
+        const val KEY_LAND_SIDE = "landscape_side"
+        const val KEY_LAND_FULLSCREEN = "landscape_fullscreen"
     }
 }
