@@ -67,6 +67,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,6 +91,8 @@ import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import cn.felix021.navigateur.browser.TabState
 import cn.felix021.navigateur.ui.BrowserController
 import cn.felix021.navigateur.ui.component.StatusStripTop
@@ -109,17 +112,33 @@ fun BrowserScreen(controller: BrowserController) {
     val settings by controller.container.settings.settings.collectAsState()
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    // 横屏默认全屏（隐藏状态栏），可在设置中关闭
-    LaunchedEffect(isLandscape, settings.landscapeFullscreen) {
-        val window = controller.activity.window
+    // 横屏默认全屏：隐藏状态栏 + 手势指示条（底部安全区开关打开时保留导航条）。
+    // 部分 ROM 会在窗口焦点变化后恢复系统栏，ON_RESUME 时重放
+    DisposableEffect(isLandscape, settings.landscapeFullscreen, settings.landscapeBottomSafeArea) {
+        val activity = controller.activity
+        val window = activity.window
         val insetsCtrl = WindowCompat.getInsetsController(window, window.decorView)
-        if (isLandscape && settings.landscapeFullscreen) {
-            insetsCtrl.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            insetsCtrl.hide(WindowInsetsCompat.Type.statusBars())
-        } else {
-            insetsCtrl.show(WindowInsetsCompat.Type.statusBars())
+        fun applyInsets() {
+            if (isLandscape && settings.landscapeFullscreen) {
+                insetsCtrl.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsCtrl.hide(WindowInsetsCompat.Type.statusBars())
+                if (settings.landscapeBottomSafeArea) {
+                    insetsCtrl.show(WindowInsetsCompat.Type.navigationBars())
+                } else {
+                    insetsCtrl.hide(WindowInsetsCompat.Type.navigationBars())
+                }
+            } else {
+                insetsCtrl.show(WindowInsetsCompat.Type.statusBars())
+                insetsCtrl.show(WindowInsetsCompat.Type.navigationBars())
+            }
         }
+        applyInsets()
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) applyInsets()
+        }
+        activity.lifecycle.addObserver(observer)
+        onDispose { activity.lifecycle.removeObserver(observer) }
     }
 
     // 返回键始终接管：有页面历史则后退，否则询问退出
@@ -329,6 +348,8 @@ private fun SideToolbar(
             Modifier
                 .fillMaxHeight()
                 .width(52.dp)
+                // 上下留空：弧形屏边缘不排按钮，避免误触/遮挡
+                .padding(vertical = 14.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,

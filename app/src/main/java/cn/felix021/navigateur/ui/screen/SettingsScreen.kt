@@ -140,6 +140,12 @@ fun SettingsScreen(controller: BrowserController) {
                 checked = settings.landscapeFullscreen,
                 onChange = { enabled -> update { it.copy(landscapeFullscreen = enabled) } },
             )
+            SwitchItem(
+                title = "横屏底部安全区",
+                subtitle = "显示系统手势条并避让；关闭则完全全屏（自绘状态信息仍在）",
+                checked = settings.landscapeBottomSafeArea,
+                onChange = { enabled -> update { it.copy(landscapeBottomSafeArea = enabled) } },
+            )
 
             SectionHeader("网站")
             SwitchItem(

@@ -23,8 +23,10 @@ data class BrowserSettings(
     val savePasswords: Boolean = true,
     /** 横屏侧边工具栏位置：right / left */
     val landscapeToolbarSide: String = "right",
-    /** 横屏默认全屏（隐藏系统状态栏） */
+    /** 横屏默认全屏（隐藏系统状态栏 + 手势指示条） */
     val landscapeFullscreen: Boolean = true,
+    /** 横屏底部安全区：显示系统导航条并避让（关闭则完全全屏） */
+    val landscapeBottomSafeArea: Boolean = false,
 )
 
 class SettingsRepository(context: Context) {
@@ -64,6 +66,7 @@ class SettingsRepository(context: Context) {
         savePasswords = prefs.getBoolean(KEY_SAVEPW, true),
         landscapeToolbarSide = if (prefs.getString(KEY_LAND_SIDE, "right") == "left") "left" else "right",
         landscapeFullscreen = prefs.getBoolean(KEY_LAND_FULLSCREEN, true),
+        landscapeBottomSafeArea = prefs.getBoolean(KEY_LAND_BOTTOM, false),
     )
 
     private fun persist(s: BrowserSettings) {
@@ -79,6 +82,7 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_SAVEPW, s.savePasswords)
             .putString(KEY_LAND_SIDE, s.landscapeToolbarSide)
             .putBoolean(KEY_LAND_FULLSCREEN, s.landscapeFullscreen)
+            .putBoolean(KEY_LAND_BOTTOM, s.landscapeBottomSafeArea)
             .apply()
     }
 
@@ -111,5 +115,6 @@ class SettingsRepository(context: Context) {
         const val KEY_SAVEPW = "save_passwords"
         const val KEY_LAND_SIDE = "landscape_side"
         const val KEY_LAND_FULLSCREEN = "landscape_fullscreen"
+        const val KEY_LAND_BOTTOM = "landscape_bottom_safe"
     }
 }

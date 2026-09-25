@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -87,12 +88,13 @@ private fun readStatus(context: Context): StatusInfo {
     )
 }
 
-/** 竖排状态条：放在横屏 cutout 安全区竖带里（时间/电量/网络） */
+/** 竖排状态条：放在横屏 cutout 安全区竖带里（时间/电量/网络）。
+ *  深色底白字（cutout 竖带本身可能是白色窗口背景），文字旋转 90° 便于在窄带内阅读 */
 @Composable
 fun StatusStripVertical(modifier: Modifier = Modifier) {
     val info = rememberStatusInfo()
     Column(
-        modifier,
+        modifier.background(Color(0xF0101014)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -100,25 +102,20 @@ fun StatusStripVertical(modifier: Modifier = Modifier) {
             info.time,
             style = MaterialTheme.typography.labelSmall,
             color = Color.White,
+            modifier = Modifier.graphicsLayer { rotationZ = 270f },
         )
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (info.charging) {
-                Icon(
-                    Icons.Filled.Bolt,
-                    contentDescription = "充电中",
-                    tint = Color.White,
-                    modifier = Modifier.size(12.dp),
-                )
-                Spacer(Modifier.width(2.dp))
-            }
-            Text(
-                "${info.batteryPercent ?: "–"}%",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
-            )
-        }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(16.dp))
+        Text(
+            buildString {
+                if (info.charging) append("⚡")
+                append(info.batteryPercent?.toString() ?: "–")
+                append('%')
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White,
+            modifier = Modifier.graphicsLayer { rotationZ = 270f },
+        )
+        Spacer(Modifier.height(16.dp))
         Icon(
             when {
                 info.wifi -> Icons.Filled.Wifi
