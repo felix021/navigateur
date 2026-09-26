@@ -210,6 +210,8 @@ private fun PortraitBrowser(
             controller = controller,
             url = current?.url.orEmpty(),
             onSubmit = { controller.loadOrSearch(it) },
+            // 胶囊外形需要四周留白，避免通栏灰条贴边
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
         )
         if (current?.loading == true) {
             LinearProgressIndicator(
@@ -271,9 +273,13 @@ private fun LandscapeBrowser(
                     Surface(
                         modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().zIndex(3f),
                         color = MaterialTheme.colorScheme.surface,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
                         shadowElevation = 8.dp,
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
                             Omnibox(
                                 controller = controller,
                                 url = current?.url.orEmpty(),
@@ -729,7 +735,15 @@ private fun Omnibox(
                 }
             }
         }
-        Surface(color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 2.dp) {
+        Surface(
+            color = if (focused) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+            tonalElevation = 2.dp,
+        ) {
             BasicTextField(
                 value = value,
                 onValueChange = { value = it },
