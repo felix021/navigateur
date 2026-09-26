@@ -130,6 +130,12 @@
     <string name="settings_search_hint">Поиск в настройках</string>
     <string name="settings_theme">Тема</string>
     <string name="settings_accent">Акцентный цвет</string>
+    <string name="proxy_ss_link_hint">Вставить ссылку ss://</string>
+    <string name="proxy_ss_import">Импорт</string>
+    <string name="proxy_ss_link_invalid">Неверная ссылка ss://</string>
+    <string name="proxy_ss_method">Шифрование</string>
+    <string name="proxy_ss_password">Пароль</string>
+
     <string name="accent_blue">Синий</string>
     <string name="accent_teal">Бирюзовый</string>
     <string name="accent_green">Зелёный</string>

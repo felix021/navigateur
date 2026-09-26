@@ -130,6 +130,12 @@
     <string name="settings_search_hint">設定を検索</string>
     <string name="settings_theme">テーマ</string>
     <string name="settings_accent">アクセントカラー</string>
+    <string name="proxy_ss_link_hint">ss:// リンクを貼り付け</string>
+    <string name="proxy_ss_import">インポート</string>
+    <string name="proxy_ss_link_invalid">リンク形式が無効です</string>
+    <string name="proxy_ss_method">暗号方式</string>
+    <string name="proxy_ss_password">パスワード</string>
+
     <string name="accent_blue">青</string>
     <string name="accent_teal">ティール</string>
     <string name="accent_green">緑</string>

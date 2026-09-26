@@ -529,13 +529,9 @@ private fun BrowserMenuContent(
             onDismiss = { onZoomOpen(false) },
         )
     }
-    DropdownMenu(
+    com.felix021.navigateur.ui.component.AppDropdownMenu(
         expanded = menuOpen,
         onDismissRequest = onDismiss,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 3.dp,
-        shadowElevation = 6.dp,
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.tab_new)) },

@@ -207,16 +207,12 @@ internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        DropdownMenu(
+        com.felix021.navigateur.ui.component.AppDropdownMenu(
             expanded = expanded,
             onDismissRequest = { query = "" },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 3.dp,
-            shadowElevation = 6.dp,
         ) {
             matches.forEach { e ->
                 DropdownMenuItem(

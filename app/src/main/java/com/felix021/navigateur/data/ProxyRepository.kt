@@ -9,17 +9,23 @@ import java.util.concurrent.Executor
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** 代理出口：DIRECT 无字段；HTTP/SOCKS5 需要 host:port */
+/** 代理出口：DIRECT 无字段；HTTP/SOCKS5 需要 host:port；SS 另需 method/password */
 data class ProxyProfile(
     val id: String,
     val name: String,
-    /** DIRECT / HTTP / SOCKS5 */
+    /** DIRECT / HTTP / SOCKS5 / SS */
     val type: String,
     val host: String = "",
     val port: Int = 0,
+    /** SS 加密方式（见 SsMethods.SUPPORTED） */
+    val method: String = "",
+    /** SS 密码（明文存本地 settings，与其它设置同权限域） */
+    val password: String = "",
 ) {
+    /** 直连型出口的 URL；SS 走本地隧道（由 ProxyRepository 换成 127.0.0.1 端口） */
     fun url(): String = when (type) {
         "SOCKS5" -> "socks5://$host:$port"
+        "SS" -> "socks5://127.0.0.1:0" // 占位，实际由 ProxyRepository 注入隧道端口
         else -> "http://$host:$port"
     }
 }
@@ -61,6 +67,9 @@ class ProxyRepository {
 
     private val ex = Executor { it.run() }
 
+    /** SS 出口的本地隧道（WebView 只认 SOCKS5，ss 流量在进程内中转） */
+    private val tunnel = SsTunnel()
+
     @Volatile
     private var settings = ProxySettings()
 
@@ -88,13 +97,15 @@ class ProxyRepository {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) return
             val pc = ProxyController.getInstance()
             val profile = profileOf(s)
+            val proxyUrl = profile?.let { resolveUrl(it) }
+            if (profile == null || proxyUrl == null) tunnel.stop()
             when {
-                // 直连：清除覆盖
-                s.mode == "direct" || profile == null -> pc.clearProxyOverride(ex, Runnable {})
+                // 直连 / SS 隧道启动失败：清除覆盖
+                s.mode == "direct" || proxyUrl == null -> pc.clearProxyOverride(ex, Runnable {})
                 // 指定 profile：静态全量代理
                 s.mode != "auto" -> pc.setProxyOverride(
                     ProxyConfig.Builder()
-                        .addProxyRule(profile.url())
+                        .addProxyRule(proxyUrl)
                         .bypassSimpleHostnames()
                         .addBypassRule("<local>")
                         .build(),
@@ -103,13 +114,13 @@ class ProxyRepository {
                 s.autoDefault == "direct" -> {
                     // AutoProxy 语义：按主文档命中决定开关
                     if (useProxyFor(s, h)) {
-                        pc.setProxyOverride(autoConfig(s, profile), ex, Runnable {})
+                        pc.setProxyOverride(autoConfig(s, proxyUrl), ex, Runnable {})
                     } else {
                         pc.clearProxyOverride(ex, Runnable {})
                     }
                 }
                 // SwitchyOmega 语义：静态默认走出口 + direct 规则 bypass
-                else -> pc.setProxyOverride(autoConfig(s, profile), ex, Runnable {})
+                else -> pc.setProxyOverride(autoConfig(s, proxyUrl), ex, Runnable {})
             }
         } catch (e: Exception) {
             Log.w("NavigateurProxy", "apply failed", e)
@@ -123,9 +134,17 @@ class ProxyRepository {
         return s.rules.any { it.action == "proxy" && matchHost(h, it.pattern) }
     }
 
-    private fun autoConfig(s: ProxySettings, profile: ProxyProfile): ProxyConfig {
+    private fun resolveUrl(profile: ProxyProfile): String? = when {
+        profile.type != "SS" -> profile.url()
+        else -> {
+            val port = tunnel.ensure(profile)
+            if (port > 0) "socks5://127.0.0.1:$port" else null
+        }
+    }
+
+    private fun autoConfig(s: ProxySettings, proxyUrl: String): ProxyConfig {
         val b = ProxyConfig.Builder()
-            .addProxyRule(profile.url())
+            .addProxyRule(proxyUrl)
             .bypassSimpleHostnames()
         b.addBypassRule("<local>")
         s.rules.filter { it.action == "direct" }.forEach { r ->
@@ -158,6 +177,7 @@ class ProxyRepository {
             put("profiles", JSONArray(s.profiles.map {
                 JSONObject().put("id", it.id).put("name", it.name)
                     .put("type", it.type).put("host", it.host).put("port", it.port)
+                    .put("method", it.method).put("password", it.password)
             }))
             put("rules", JSONArray(s.rules.map {
                 JSONObject().put("pattern", it.pattern).put("action", it.action)
@@ -175,6 +195,7 @@ class ProxyRepository {
                     ProxyProfile(
                         p.optString("id"), p.optString("name"),
                         p.optString("type", "HTTP"), p.optString("host"), p.optInt("port"),
+                        p.optString("method"), p.optString("password"),
                     )
                 },
                 rules = (0 until o.optJSONArray("rules").length()).map { i ->
@@ -183,6 +204,56 @@ class ProxyRepository {
                 },
             )
         }.getOrDefault(ProxySettings())
+
+        /**
+         * 解析 ss:// 链接（SIP002 + 旧整段 base64 格式），不支持 plugin 参数。
+         * 成功返回带 name/host/port/method/password 的 SS 出口（id 由调用方补）。
+         */
+        fun parseSsLink(raw: String): ProxyProfile? = runCatching {
+            var s = raw.trim()
+            require(s.startsWith("ss://"))
+            s = s.removePrefix("ss://")
+            val tag = s.indexOf('#').let { i ->
+                if (i >= 0) java.net.URLDecoder.decode(s.substring(i + 1), "UTF-8") else ""
+            }.also { s = if (s.contains('#')) s.substring(0, s.indexOf('#')) else s }
+
+            val userInfo: String
+            val hostPort: String
+            if (s.contains('@')) { // SIP002：userinfo@host:port
+                val at = s.indexOf('@')
+                val ui = s.substring(0, at)
+                hostPort = s.substring(at + 1)
+                // userinfo 可能是裸 method:password 或其 base64
+                userInfo = if (ui.contains(':')) ui
+                else String(Base64.decode(ui, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP), Charsets.UTF_8)
+            } else { // 旧格式：整段 base64(method:password@host:port)
+                val decoded = String(Base64.decode(s, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP), Charsets.UTF_8)
+                val at = decoded.indexOf('@')
+                require(at > 0)
+                userInfo = decoded.substring(0, at)
+                hostPort = decoded.substring(at + 1)
+            }
+            val sep = userInfo.indexOf(':')
+            require(sep > 0)
+            val method = userInfo.substring(0, sep)
+            val password = userInfo.substring(sep + 1)
+            // host:port（v2 插件参数 ;... 剥掉）
+            val hp = hostPort.substringBefore(';')
+            val hpSep = hp.lastIndexOf(':')
+            require(hpSep > 0)
+            val port = hp.substring(hpSep + 1).toInt()
+            require(port in 1..65535)
+            val host = hp.substring(0, hpSep).trim('[', ']')
+            ProxyProfile(
+                id = java.util.UUID.randomUUID().toString(),
+                name = tag.ifBlank { host },
+                type = "SS",
+                host = host,
+                port = port,
+                method = method,
+                password = password,
+            )
+        }.getOrNull()
 
         /**
          * 解析 AutoProxy / ABP 风格规则列表（gfwlist 即此格式）：

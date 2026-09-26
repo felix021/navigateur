@@ -2,6 +2,7 @@ package com.felix021.navigateur.ui.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.data.ProxyProfile
+import com.felix021.navigateur.data.SsMethods
 import com.felix021.navigateur.data.ProxyRepository
 import com.felix021.navigateur.data.ProxyRule
 import com.felix021.navigateur.data.ProxyRuleParseResult
@@ -162,7 +164,7 @@ private fun ProxyModeDialog(
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
                 options.forEach { (id, label) ->
                     Row(
-                        Modifier.fillMaxWidth().clickable { onSelect(id, autoId, autoDefault) }.padding(vertical = 10.dp),
+                        Modifier.fillMaxWidth().clickable { onSelect(id, autoId, autoDefault) }.padding(vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
@@ -182,7 +184,7 @@ private fun ProxyModeDialog(
                         proxy.profiles.forEach { pf ->
                             Row(
                                 Modifier.fillMaxWidth().clickable { autoId = pf.id }
-                                    .padding(start = 28.dp, top = 6.dp, bottom = 6.dp),
+                                    .padding(start = 24.dp, top = 3.dp, bottom = 3.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 RadioButton(selected = autoId == pf.id, onClick = { autoId = pf.id })
@@ -202,7 +204,7 @@ private fun ProxyModeDialog(
                         ).forEach { (v, t) ->
                             Row(
                                 Modifier.fillMaxWidth().clickable { autoDefault = v }
-                                    .padding(start = 28.dp, top = 6.dp, bottom = 6.dp),
+                                    .padding(start = 24.dp, top = 3.dp, bottom = 3.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 RadioButton(selected = autoDefault == v, onClick = { autoDefault = v })
@@ -240,48 +242,114 @@ private fun ProxyProfilesDialog(
     var host by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("HTTP") }
+    var method by remember { mutableStateOf("aes-256-gcm") }
+    var password by remember { mutableStateOf("") }
+    var ssLink by remember { mutableStateOf("") }
+    val context = LocalContext.current
     AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (adding) stringResource(R.string.proxy_add_outlet) else stringResource(R.string.proxy_outlets)) },
         text = {
-            Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
                 if (!adding) {
                     proxy.profiles.forEach { pf ->
                         Row(
-                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            Modifier.fillMaxWidth().padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(Modifier.weight(1f)) {
                                 Text(pf.name, style = MaterialTheme.typography.bodyMedium)
                                 Text(
-                                    "${pf.type} ${pf.host}:${pf.port}",
+                                    if (pf.type == "SS") "${pf.type} ${pf.method} ${pf.host}:${pf.port}"
+                                    else "${pf.type} ${pf.host}:${pf.port}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            IconButton(onClick = { onSave(proxy.profiles.filterNot { it.id == pf.id }) }) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(18.dp))
+                            IconButton(
+                                onClick = { onSave(proxy.profiles.filterNot { it.id == pf.id }) },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(16.dp))
                             }
                         }
                     }
                     TextButton(onClick = { adding = true }) { Text(stringResource(R.string.add_prefixed)) }
                 } else {
-                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.field_name)) }, singleLine = true)
-                    Spacer(Modifier.padding(4.dp))
+                    // ss:// 链接一键导入（SIP002 + 旧格式），成功回填下方表单
+                    OutlinedTextField(
+                        value = ssLink,
+                        onValueChange = { ssLink = it },
+                        label = { Text(stringResource(R.string.proxy_ss_link_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Row(horizontalArrangement = Arrangement.End) {
+                        TextButton(
+                            enabled = ssLink.isNotBlank(),
+                            onClick = {
+                                val pf = ProxyRepository.parseSsLink(ssLink)
+                                if (pf != null) {
+                                    type = "SS"; name = pf.name; host = pf.host
+                                    port = pf.port.toString(); method = pf.method; password = pf.password
+                                    ssLink = ""
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.proxy_ss_link_invalid), Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        ) { Text(stringResource(R.string.proxy_ss_import)) }
+                    }
+                    OutlinedTextField(
+                        value = name, onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.field_name)) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.padding(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        listOf("HTTP", "SOCKS5").forEach { t ->
+                        listOf("HTTP", "SOCKS5", "SS").forEach { t ->
                             Row(
-                                Modifier.clickable { type = t }.padding(horizontal = 6.dp),
+                                Modifier.clickable { type = t }.padding(horizontal = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                RadioButton(selected = type == t, onClick = { type = t })
+                                RadioButton(selected = type == t, onClick = { type = t }, modifier = Modifier.size(36.dp))
                                 Text(t, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
-                    OutlinedTextField(value = host, onValueChange = { host = it }, label = { Text(stringResource(R.string.field_host)) }, singleLine = true)
-                    Spacer(Modifier.padding(4.dp))
-                    OutlinedTextField(value = port, onValueChange = { port = it.filter { c -> c.isDigit() } }, label = { Text(stringResource(R.string.field_port)) }, singleLine = true)
+                    OutlinedTextField(
+                        value = host, onValueChange = { host = it },
+                        label = { Text(stringResource(R.string.field_host)) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.padding(2.dp))
+                    OutlinedTextField(
+                        value = port, onValueChange = { port = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.field_port)) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (type == "SS") {
+                        Spacer(Modifier.padding(2.dp))
+                        Text(
+                            stringResource(R.string.proxy_ss_method),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        SsMethods.SUPPORTED.forEach { m ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { method = m }.padding(vertical = 1.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(selected = method == m, onClick = { method = m }, modifier = Modifier.size(32.dp))
+                                Text(m, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        Spacer(Modifier.padding(2.dp))
+                        OutlinedTextField(
+                            value = password, onValueChange = { password = it },
+                            label = { Text(stringResource(R.string.proxy_ss_password)) },
+                            singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         },
@@ -291,14 +359,17 @@ private fun ProxyProfilesDialog(
                     onClick = {
                         val p = port.toIntOrNull() ?: return@TextButton
                         if (host.isBlank() || p !in 1..65535) return@TextButton
+                        if (type == "SS" && password.isBlank()) return@TextButton
                         onSave(
                             proxy.profiles + ProxyProfile(
                                 id = java.util.UUID.randomUUID().toString(),
                                 name = name.ifBlank { host },
                                 type = type, host = host.trim(), port = p,
+                                method = if (type == "SS") method else "",
+                                password = if (type == "SS") password else "",
                             ),
                         )
-                        adding = false; name = ""; host = ""; port = ""
+                        adding = false; name = ""; host = ""; port = ""; password = ""; ssLink = ""
                     },
                 ) { Text(stringResource(R.string.save)) }
             } else {
@@ -336,7 +407,7 @@ private fun ProxyRulesDialog(
                     )
                     proxy.rules.forEach { r ->
                         Row(
-                            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            Modifier.fillMaxWidth().padding(vertical = 1.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
@@ -344,8 +415,11 @@ private fun ProxyRulesDialog(
                                 Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
-                            IconButton(onClick = { onSave(proxy.rules.filterNot { it.pattern == r.pattern }) }) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(18.dp))
+                            IconButton(
+                                onClick = { onSave(proxy.rules.filterNot { it.pattern == r.pattern }) },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(16.dp))
                             }
                         }
                     }
@@ -441,7 +515,7 @@ private fun ProxyImportDialog(
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                     ) { Text(stringResource(R.string.proxy_import_source_url)) }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(8.dp))
 
                 if (source == "paste") {
                     OutlinedTextField(
@@ -542,12 +616,20 @@ private fun ProxyImportDialog(
                 }
 
                 Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // 选项改竖排：横排放不下会把「未命中走代理」这类长标签挤断行
+                Row(
+                    Modifier.fillMaxWidth().clickable { replace = false }.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     RadioButton(selected = !replace, onClick = { replace = false })
-                    Text(stringResource(R.string.import_append), Modifier.clickable { replace = false })
-                    Spacer(Modifier.padding(10.dp))
+                    Text(stringResource(R.string.import_append))
+                }
+                Row(
+                    Modifier.fillMaxWidth().clickable { replace = true }.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     RadioButton(selected = replace, onClick = { replace = true })
-                    Text(stringResource(R.string.import_replace), Modifier.clickable { replace = true })
+                    Text(stringResource(R.string.import_replace))
                 }
                 if (replace && preview != null) {
                     Text(
@@ -563,12 +645,19 @@ private fun ProxyImportDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.fillMaxWidth().clickable { autoDefault = "direct" }.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     RadioButton(selected = autoDefault == "direct", onClick = { autoDefault = "direct" })
-                    Text(stringResource(R.string.proxy_default_direct), Modifier.clickable { autoDefault = "direct" })
-                    Spacer(Modifier.padding(10.dp))
+                    Text(stringResource(R.string.proxy_default_direct))
+                }
+                Row(
+                    Modifier.fillMaxWidth().clickable { autoDefault = "proxy" }.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     RadioButton(selected = autoDefault == "proxy", onClick = { autoDefault = "proxy" })
-                    Text(stringResource(R.string.proxy_default_proxy), Modifier.clickable { autoDefault = "proxy" })
+                    Text(stringResource(R.string.proxy_default_proxy))
                 }
             }
         },

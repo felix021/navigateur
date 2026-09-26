@@ -130,6 +130,12 @@
     <string name="settings_search_hint">搜索设置</string>
     <string name="settings_theme">主题</string>
     <string name="settings_accent">主题色</string>
+    <string name="proxy_ss_link_hint">粘贴 ss:// 链接</string>
+    <string name="proxy_ss_import">导入</string>
+    <string name="proxy_ss_link_invalid">链接格式无效</string>
+    <string name="proxy_ss_method">加密方式</string>
+    <string name="proxy_ss_password">密码</string>
+
     <string name="accent_blue">蓝色</string>
     <string name="accent_teal">青绿</string>
     <string name="accent_green">绿色</string>

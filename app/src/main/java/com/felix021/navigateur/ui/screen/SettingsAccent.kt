@@ -3,6 +3,7 @@ package com.felix021.navigateur.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.R
@@ -38,8 +41,9 @@ import com.felix021.navigateur.ui.accentColorScheme
 import com.felix021.navigateur.ui.component.AppDialog
 
 /**
- * 主题色选择：六套预设 + 色相滑块自定义。
- * 滑块拖动只改本地预览，松手（onValueChangeFinished）才落盘，避免每帧 commit。
+ * 主题色选择，交互对齐 feelime「键盘色调」色板：
+ * 横向 swatch 圆点单选（点击即生效，选中态描边+放大），下方色名确认；
+ * 自定义项附色相滑块（拖动即时预览，松手落盘）。
  */
 @Composable
 internal fun AccentDialog(
@@ -54,88 +58,53 @@ internal fun AccentDialog(
 
     val preview = accentColorScheme(selKey, selHue, dark).primary
     val isCustom = selKey == "custom"
+    val labelRes = if (isCustom) R.string.accent_custom
+    else ACCENTS.firstOrNull { it.key == selKey }?.labelRes ?: R.string.accent_custom
 
     AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_accent)) },
         text = {
-            Column {
-                ACCENTS.forEach { opt ->
-                    val selected = selKey == opt.key
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                            .clickable {
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // swatch 行：6 预设 + 自定义
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ACCENTS.forEach { opt ->
+                        val selected = selKey == opt.key
+                        Swatch(
+                            color = accentColorScheme(opt.key, opt.hue, dark).primary,
+                            selected = selected,
+                            onClick = {
                                 selKey = opt.key
                                 selHue = opt.hue
                                 onSelect(opt.key, opt.hue)
-                            }
-                            .padding(vertical = 8.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(accentColorScheme(opt.key, opt.hue, dark).primary)
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant,
-                                    CircleShape,
-                                ),
+                            },
                         )
-                        Spacer(Modifier.width(14.dp))
-                        Text(
-                            stringResource(opt.labelRes),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (selected) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
                     }
-                }
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                        .clickable {
+                    Swatch(
+                        color = if (isCustom) preview else Color.hsl(selHue, 0.62f, 0.45f),
+                        selected = isCustom,
+                        onClick = {
                             selKey = "custom"
                             onSelect("custom", selHue)
-                        }
-                        .padding(vertical = 8.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(Color.hsl(selHue, 0.62f, 0.45f))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+                        },
                     )
-                    Spacer(Modifier.width(14.dp))
-                    Text(
-                        stringResource(R.string.accent_custom),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (isCustom) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
                 }
 
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    stringResource(labelRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
                 if (isCustom) {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(6.dp))
                     Slider(
                         value = selHue,
                         onValueChange = { selHue = it },
@@ -143,17 +112,17 @@ internal fun AccentDialog(
                         valueRange = 0f..360f,
                     )
                     Row(
-                        Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Box(
                             Modifier
-                                .size(36.dp)
+                                .size(30.dp)
                                 .clip(CircleShape)
                                 .background(preview)
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
                         )
-                        Spacer(Modifier.width(10.dp))
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             stringResource(R.string.accent_custom_hint),
                             style = MaterialTheme.typography.bodySmall,
@@ -167,4 +136,36 @@ internal fun AccentDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
         },
     )
+}
+
+/** 单个色点：选中态用主色描边并放大 12%（feelime 色板同款反馈） */
+@Composable
+private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .size(34.dp)
+            .graphicsLayer {
+                scaleX = if (selected) 1.12f else 1f
+                scaleY = if (selected) 1.12f else 1f
+            }
+            .clip(CircleShape)
+            .background(color)
+            .border(
+                width = 2.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary
+                else Color.Transparent,
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (selected) {
+            Icon(
+                Icons.Filled.Check,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
 }

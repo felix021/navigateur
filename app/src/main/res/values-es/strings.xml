@@ -130,6 +130,12 @@
     <string name="settings_search_hint">Buscar en ajustes</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_accent">Color de acento</string>
+    <string name="proxy_ss_link_hint">Pegar enlace ss://</string>
+    <string name="proxy_ss_import">Importar</string>
+    <string name="proxy_ss_link_invalid">Enlace ss:// no válido</string>
+    <string name="proxy_ss_method">Cifrado</string>
+    <string name="proxy_ss_password">Contraseña</string>
+
     <string name="accent_blue">Azul</string>
     <string name="accent_teal">Turquesa</string>
     <string name="accent_green">Verde</string>

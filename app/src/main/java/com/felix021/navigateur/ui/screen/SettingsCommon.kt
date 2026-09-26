@@ -44,7 +44,9 @@ internal fun SearchEngine.nameText(): String = nameRes?.let { stringResource(it)
 
 /**
  * 设置项外壳：把整块区域的坐标上报给导航（供搜索跳转定位），
- * 搜索命中时整块泛起融合的光晕（边缘透明的横向渐变）——每 0.3s 呼吸一次，连续 3 次。
+ * 搜索命中时整块泛起融合的光晕（边缘透明的横向渐变）。
+ * 节奏对齐 feelime 设置页：每轮 620ms ease-in-out 渐亮渐暗，连续 3 轮（约 1.9s）——
+ * 缓入缓出才有「呼吸」感，线性短脉冲看起来像闪烁。
  */
 @Composable
 internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit) {
@@ -54,8 +56,8 @@ internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit
     LaunchedEffect(highlighted) {
         if (highlighted) {
             repeat(3) {
-                glow.animateTo(1f, tween(150))
-                glow.animateTo(0f, tween(150))
+                glow.animateTo(1f, tween(310, easing = androidx.compose.animation.core.EaseInOut))
+                glow.animateTo(0f, tween(310, easing = androidx.compose.animation.core.EaseInOut))
             }
             nav?.clearHighlight()
         } else {
@@ -80,9 +82,9 @@ internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit
                         brush = Brush.horizontalGradient(
                             listOf(
                                 Color.Transparent,
-                                primary.copy(alpha = 0.16f * a),
-                                primary.copy(alpha = 0.42f * a),
-                                primary.copy(alpha = 0.16f * a),
+                                primary.copy(alpha = 0.13f * a),
+                                primary.copy(alpha = 0.34f * a),
+                                primary.copy(alpha = 0.13f * a),
                                 Color.Transparent,
                             ),
                         ),
