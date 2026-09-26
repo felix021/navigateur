@@ -126,6 +126,7 @@
     <string name="settings_search_engine">Поисковая система</string>
     <string name="settings_save_passwords">Сохранять пароли</string>
     <string name="settings_language">Язык</string>
+    <string name="settings_search_hint">Поиск в настройках</string>
     <string name="settings_theme">Тема</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>

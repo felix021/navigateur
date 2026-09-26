@@ -21,11 +21,14 @@ import com.felix021.navigateur.R
 internal fun DeveloperSettingsPage(controller: BrowserController, onBack: () -> Unit) {
     val settings by controller.container.settings.settings.collectAsState()
 
+    val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_developer), onBack) { pad ->
+        SettingsJumpTarget(scroll)
         Column(
-            Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {
             SwitchItem(
+                entryId = "d.remote",
                 title = stringResource(R.string.dev_remote_title),
                 subtitle = stringResource(R.string.dev_remote_desc),
                 checked = settings.remoteDebug,
@@ -34,6 +37,7 @@ internal fun DeveloperSettingsPage(controller: BrowserController, onBack: () -> 
                 },
             )
             SwitchItem(
+                entryId = "d.eruda",
                 title = stringResource(R.string.dev_eruda_title),
                 subtitle = stringResource(R.string.dev_eruda_desc),
                 checked = settings.devTools,

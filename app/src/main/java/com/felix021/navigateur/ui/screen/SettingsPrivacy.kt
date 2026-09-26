@@ -36,17 +36,21 @@ internal fun PrivacySettingsPage(controller: BrowserController, onBack: () -> Un
     var showClear by remember { mutableStateOf(false) }
     var showSiteClear by remember { mutableStateOf(false) }
 
+    val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_privacy), onBack) { pad ->
+        SettingsJumpTarget(scroll)
         Column(
-            Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {
             SettingItem(
                 title = stringResource(R.string.privacy_clear_all),
                 value = stringResource(R.string.privacy_clear_all_desc),
+                entryId = "pv.clear_all",
             ) { showClear = true }
             SettingItem(
                 title = stringResource(R.string.privacy_clear_site),
                 value = stringResource(R.string.privacy_clear_site_desc),
+                entryId = "pv.clear_site",
             ) { showSiteClear = true }
             Spacer(Modifier.height(32.dp))
         }

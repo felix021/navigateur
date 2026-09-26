@@ -64,17 +64,25 @@ internal fun ProxySettingsPage(controller: BrowserController, onBack: () -> Unit
         }
     }
 
+    val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_proxy), onBack) { pad ->
+        SettingsJumpTarget(scroll)
         Column(
-            Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {
-            SettingItem(title = stringResource(R.string.proxy_current_mode), value = proxyModeLabel(proxy)) { showMode = true }
             SettingItem(
+                title = stringResource(R.string.proxy_current_mode),
+                value = proxyModeLabel(proxy),
+                entryId = "p.mode",
+            ) { showMode = true }
+            SettingItem(
+                entryId = "p.outlets",
                 title = stringResource(R.string.proxy_outlets),
                 value = if (proxy.profiles.isEmpty()) stringResource(R.string.proxy_not_added)
                 else proxy.profiles.joinToString(" / ") { it.name },
             ) { showProfiles = true }
             SettingItem(
+                entryId = "p.rules",
                 title = stringResource(R.string.proxy_rules_title),
                 value = if (proxy.rules.isEmpty()) stringResource(R.string.proxy_not_added)
                 else stringResource(
@@ -84,6 +92,7 @@ internal fun ProxySettingsPage(controller: BrowserController, onBack: () -> Unit
                 ),
             ) { showRules = true }
             SettingItem(
+                entryId = "p.import",
                 title = stringResource(R.string.proxy_import_entry),
                 value = stringResource(R.string.proxy_import_entry_desc),
             ) { showImport = true }

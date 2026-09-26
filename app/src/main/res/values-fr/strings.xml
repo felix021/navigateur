@@ -126,6 +126,7 @@
     <string name="settings_search_engine">Moteur de recherche</string>
     <string name="settings_save_passwords">Enregistrer les mots de passe</string>
     <string name="settings_language">Langue</string>
+    <string name="settings_search_hint">Rechercher dans les paramètres</string>
     <string name="settings_theme">Thème</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>

@@ -40,12 +40,15 @@ internal fun AdBlockSettingsPage(controller: BrowserController, onBack: () -> Un
     val adStatus by controller.container.adBlock.status.collectAsState()
     var showAllow by remember { mutableStateOf(false) }
 
+    val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_adblock), onBack) { pad ->
+        SettingsJumpTarget(scroll)
         Column(
-            Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {
             SwitchItem(
                 title = stringResource(R.string.adblock_switch),
+                entryId = "a.switch",
                 subtitle = stringResource(R.string.adblock_switch_desc),
                 checked = settings.adBlockEnabled,
                 onChange = { enabled ->
@@ -55,8 +58,10 @@ internal fun AdBlockSettingsPage(controller: BrowserController, onBack: () -> Un
             SettingItem(
                 title = stringResource(R.string.adblock_update),
                 value = adRulesLabel(adStatus),
+                entryId = "a.update",
             ) { controller.container.adBlock.update() }
             SettingItem(
+                entryId = "a.allowlist",
                 title = stringResource(R.string.adblock_allowlist),
                 value = if (settings.adBlockAllowlist.isEmpty()) stringResource(R.string.adblock_allowlist_empty)
                 else stringResource(R.string.adblock_allowlist_count, settings.adBlockAllowlist.size),

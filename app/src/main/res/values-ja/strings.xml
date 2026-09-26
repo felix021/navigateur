@@ -126,6 +126,7 @@
     <string name="settings_search_engine">検索エンジン</string>
     <string name="settings_save_passwords">パスワードを保存</string>
     <string name="settings_language">言語</string>
+    <string name="settings_search_hint">設定を検索</string>
     <string name="settings_theme">テーマ</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
