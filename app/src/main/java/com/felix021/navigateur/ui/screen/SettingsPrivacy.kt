@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import com.felix021.navigateur.ui.component.AppDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -94,7 +94,7 @@ private fun SiteClearDialog(
         if (host.isBlank()) hosts.take(8)
         else hosts.filter { it.contains(host, ignoreCase = true) }.take(8)
     }.filter { it != host }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.privacy_clear_site)) },
         text = {
@@ -168,7 +168,7 @@ private fun ClearDataDialog(
         stringResource(R.string.clear_data_history),
     )
     val checked = remember { mutableStateListOf(true, true, true, true, false, true) }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.privacy_clear_all)) },
         text = {

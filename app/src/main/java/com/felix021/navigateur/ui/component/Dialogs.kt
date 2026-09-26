@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import com.felix021.navigateur.ui.component.AppDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -37,7 +37,7 @@ fun BookmarkDialog(
 ) {
     var title by remember { mutableStateOf(initial?.title.orEmpty()) }
     var url by remember { mutableStateOf(initial?.url.orEmpty()) }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (initial == null) stringResource(R.string.bookmark_add) else stringResource(R.string.bookmark_edit)) },
         text = {
@@ -75,7 +75,7 @@ fun TextInputDialog(
     onOk: (String) -> Unit,
 ) {
     var value by remember { mutableStateOf(initial) }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -114,7 +114,7 @@ fun <T> SingleChoiceDialog(
     onDismiss: () -> Unit,
     onSelect: (T) -> Unit,
 ) {
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -123,7 +123,7 @@ fun <T> SingleChoiceDialog(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { onSelect(opt) }
                             .padding(vertical = 10.dp, horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,

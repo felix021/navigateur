@@ -21,6 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.stringResource
@@ -41,24 +44,25 @@ internal fun SearchEngine.nameText(): String = nameRes?.let { stringResource(it)
 
 /**
  * 设置项外壳：把整块区域的坐标上报给导航（供搜索跳转定位），
- * 搜索命中时整块背景呼吸 3 次提醒位置。
+ * 搜索命中时整块泛起融合的光晕（边缘透明的横向渐变）——每 0.3s 呼吸一次，连续 3 次。
  */
 @Composable
 internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit) {
     val nav = LocalSettingsNav.current
     val highlighted = entryId != null && nav?.highlightId == entryId
-    val alpha = remember { Animatable(0f) }
+    val glow = remember { Animatable(0f) }
     LaunchedEffect(highlighted) {
         if (highlighted) {
             repeat(3) {
-                alpha.animateTo(0.28f, tween(260))
-                alpha.animateTo(0f, tween(260))
+                glow.animateTo(1f, tween(150))
+                glow.animateTo(0f, tween(150))
             }
             nav?.clearHighlight()
         } else {
-            alpha.snapTo(0f)
+            glow.snapTo(0f)
         }
     }
+    val primary = MaterialTheme.colorScheme.primary
     Box(
         Modifier
             .fillMaxWidth()
@@ -69,7 +73,22 @@ internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit
                     }
                 } else Modifier,
             )
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = alpha.value)),
+            .drawBehind {
+                val a = glow.value
+                if (a > 0.01f) {
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            listOf(
+                                Color.Transparent,
+                                primary.copy(alpha = 0.16f * a),
+                                primary.copy(alpha = 0.42f * a),
+                                primary.copy(alpha = 0.16f * a),
+                                Color.Transparent,
+                            ),
+                        ),
+                    )
+                }
+            },
     ) { content() }
 }
 

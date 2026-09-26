@@ -129,6 +129,16 @@
     <string name="settings_language">Langue</string>
     <string name="settings_search_hint">Rechercher dans les paramètres</string>
     <string name="settings_theme">Thème</string>
+    <string name="settings_accent">Couleur d’accent</string>
+    <string name="accent_blue">Bleu</string>
+    <string name="accent_teal">Turquoise</string>
+    <string name="accent_green">Vert</string>
+    <string name="accent_orange">Orange</string>
+    <string name="accent_rose">Rose</string>
+    <string name="accent_slate">Ardoise</string>
+    <string name="accent_custom">Personnalisée</string>
+    <string name="accent_custom_hint">Faites glisser pour choisir la teinte ; appliqué au relâchement</string>
+
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="settings_zoom">Zoom de la page</string>

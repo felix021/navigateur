@@ -15,7 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
+import com.felix021.navigateur.ui.component.AppDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -155,7 +155,7 @@ private fun ProxyModeDialog(
     }
     var autoId by remember(proxy) { mutableStateOf(proxy.autoProfileId.ifEmpty { proxy.profiles.firstOrNull()?.id ?: "" }) }
     var autoDefault by remember(proxy) { mutableStateOf(proxy.autoDefault) }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.proxy_mode_title)) },
         text = {
@@ -240,7 +240,7 @@ private fun ProxyProfilesDialog(
     var host by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("HTTP") }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (adding) stringResource(R.string.proxy_add_outlet) else stringResource(R.string.proxy_outlets)) },
         text = {
@@ -323,7 +323,7 @@ private fun ProxyRulesDialog(
     var adding by remember { mutableStateOf(false) }
     var pattern by remember { mutableStateOf("") }
     var direct by remember { mutableStateOf(true) }
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (adding) stringResource(R.string.proxy_add_rule) else stringResource(R.string.proxy_rules_title)) },
         text = {
@@ -423,7 +423,7 @@ private fun ProxyImportDialog(
         }
     }
 
-    AlertDialog(
+    AppDialog(
         onDismissRequest = { if (!loading) onDismiss() },
         title = { Text(stringResource(R.string.proxy_import_entry)) },
         text = {

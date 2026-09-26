@@ -129,6 +129,16 @@
     <string name="settings_language">Язык</string>
     <string name="settings_search_hint">Поиск в настройках</string>
     <string name="settings_theme">Тема</string>
+    <string name="settings_accent">Акцентный цвет</string>
+    <string name="accent_blue">Синий</string>
+    <string name="accent_teal">Бирюзовый</string>
+    <string name="accent_green">Зелёный</string>
+    <string name="accent_orange">Оранжевый</string>
+    <string name="accent_rose">Розовый</string>
+    <string name="accent_slate">Сланцевый</string>
+    <string name="accent_custom">Свой</string>
+    <string name="accent_custom_hint">Потяните ползунок, чтобы выбрать оттенок; применяется после отпускания</string>
+
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="settings_zoom">Масштаб страницы</string>

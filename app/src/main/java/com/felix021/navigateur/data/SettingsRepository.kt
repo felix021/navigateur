@@ -26,6 +26,10 @@ data class BrowserSettings(
     /** 页面整体缩放百分比（CSS zoom，非仅字体），50–200 */
     val pageZoomPercent: Int = 100,
     val themeMode: ThemeMode = ThemeMode.FOLLOW_SYSTEM,
+    /** 主题色：ACCENTS 里的 key，或 "custom"（用 accentHue 生成） */
+    val accent: String = "blue",
+    /** 自定义主题色色相 0–360（accent == "custom" 时生效） */
+    val accentHue: Float = 215f,
     val savePasswords: Boolean = true,
     /** 横屏侧边工具栏位置：right / left */
     val landscapeToolbarSide: String = "right",
@@ -80,6 +84,8 @@ class SettingsRepository(context: Context) {
         themeMode = runCatching {
             ThemeMode.valueOf(prefs.getString(KEY_THEME, ThemeMode.FOLLOW_SYSTEM.name)!!)
         }.getOrDefault(ThemeMode.FOLLOW_SYSTEM),
+        accent = prefs.getString(KEY_ACCENT, "blue") ?: "blue",
+        accentHue = prefs.getFloat(KEY_ACCENT_HUE, 215f),
         savePasswords = prefs.getBoolean(KEY_SAVEPW, true),
         landscapeToolbarSide = if (prefs.getString(KEY_LAND_SIDE, "right") == "left") "left" else "right",
         landscapeFullscreen = prefs.getBoolean(KEY_LAND_FULLSCREEN, true),
@@ -127,6 +133,8 @@ class SettingsRepository(context: Context) {
             .putString(KEY_FONT, s.fontFamily)
             .putInt(KEY_ZOOM, s.pageZoomPercent)
             .putString(KEY_THEME, s.themeMode.name)
+            .putString(KEY_ACCENT, s.accent)
+            .putFloat(KEY_ACCENT_HUE, s.accentHue)
             .putBoolean(KEY_SAVEPW, s.savePasswords)
             .putString(KEY_LAND_SIDE, s.landscapeToolbarSide)
             .putBoolean(KEY_LAND_FULLSCREEN, s.landscapeFullscreen)
@@ -163,6 +171,8 @@ class SettingsRepository(context: Context) {
         const val KEY_UA_PRESET = "ua_preset"
         const val KEY_UA = "custom_ua"
         const val KEY_CUSTOM_UAS = "custom_ua_presets"
+        private const val KEY_ACCENT = "accent"
+        private const val KEY_ACCENT_HUE = "accent_hue"
         const val KEY_FONT = "font_family"
         const val KEY_ZOOM = "text_zoom"
         const val KEY_THEME = "theme_mode"

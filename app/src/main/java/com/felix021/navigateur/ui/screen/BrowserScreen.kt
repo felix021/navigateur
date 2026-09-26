@@ -54,7 +54,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material3.AlertDialog
+import com.felix021.navigateur.ui.component.AppDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -88,6 +88,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
@@ -526,7 +529,14 @@ private fun BrowserMenuContent(
             onDismiss = { onZoomOpen(false) },
         )
     }
-    DropdownMenu(expanded = menuOpen, onDismissRequest = onDismiss) {
+    DropdownMenu(
+        expanded = menuOpen,
+        onDismissRequest = onDismiss,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 3.dp,
+        shadowElevation = 6.dp,
+    ) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.tab_new)) },
             leadingIcon = { Icon(Icons.Filled.Add, null) },
@@ -635,7 +645,7 @@ private fun BrowserMenuContent(
 
 @Composable
 private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    androidx.compose.material3.AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.exit_title)) },
         text = { Text(stringResource(R.string.exit_message)) },
@@ -655,7 +665,7 @@ private fun SiteInfoDialog(controller: BrowserController, onDismiss: () -> Unit)
     val url = controller.tabManager.current?.url.orEmpty()
     val host = UrlUtils.hostOf(url).ifEmpty { url }
     val secure = url.startsWith("https://")
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(host.ifEmpty { stringResource(R.string.cert_title) }) },
         text = {
@@ -742,6 +752,12 @@ private fun Omnibox(
     val focusManager = LocalFocusManager.current
     val history by controller.container.history.history.collectAsState()
     val bookmarks by controller.container.bookmarks.bookmarks.collectAsState()
+    // 编辑态多行：上限半屏；建议面板贴着地址栏底部（高度动态）
+    var boxHeightPx by remember { mutableIntStateOf(0) }
+    val maxEditHeight = with(LocalDensity.current) {
+        (LocalConfiguration.current.screenHeightDp / 2).dp
+    }
+    val boxHeightDp = with(LocalDensity.current) { boxHeightPx.toDp() }
 
     LaunchedEffect(url) {
         if (!focused) {
@@ -783,11 +799,12 @@ private fun Omnibox(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .fillMaxWidth()
-                    .offset(y = 56.dp)
+                    .offset(y = boxHeightDp + 4.dp)
                     .zIndex(1f),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp,
-                shadowElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                tonalElevation = 3.dp,
+                shadowElevation = 6.dp,
             ) {
                 Column {
                     suggestions.forEach { s ->
@@ -836,11 +853,22 @@ private fun Omnibox(
             },
             shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
             tonalElevation = 2.dp,
+            modifier = Modifier.onSizeChanged { boxHeightPx = it.height },
         ) {
             BasicTextField(
                 value = value,
-                onValueChange = { value = it },
-                singleLine = true,
+                onValueChange = { v ->
+                    // 多行编辑态下物理键盘 Enter 会插换行：当作「前往」提交
+                    if (v.text.contains('\n')) {
+                        val t = v.text.replace("\n", "")
+                        if (t.isNotBlank()) onSubmit(t)
+                        focusManager.clearFocus()
+                    } else {
+                        value = v
+                    }
+                },
+                singleLine = !focused,
+                maxLines = if (focused) 8 else 1,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 interactionSource = interaction,
@@ -853,8 +881,11 @@ private fun Omnibox(
                 ),
                 decorationBox = { inner ->
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = maxEditHeight)
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        verticalAlignment = if (focused) Alignment.Top else Alignment.CenterVertically,
                     ) {
                         // 站点信息入口：点击只弹信息，不进入编辑态
                         IconButton(
@@ -862,14 +893,14 @@ private fun Omnibox(
                                 focusManager.clearFocus()
                                 showSiteInfo = true
                             },
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(32.dp),
                         ) {
                             Icon(
                                 if (!focused && url.startsWith("https://")) Icons.Filled.Lock
                                 else Icons.Filled.Search,
                                 contentDescription = stringResource(R.string.cd_certificate),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(18.dp),
                             )
                         }
                         Box(Modifier.weight(1f)) {
@@ -901,7 +932,7 @@ private fun ZoomDialog(
     onZoom: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    androidx.compose.material3.AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.zoom_title)) },
         text = {

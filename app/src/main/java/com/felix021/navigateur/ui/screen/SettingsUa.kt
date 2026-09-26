@@ -13,7 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
+import com.felix021.navigateur.ui.component.AppDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,7 +49,7 @@ internal fun UaPresetsDialog(
     onDelete: (UaPreset) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_ua)) },
         text = {
@@ -143,7 +143,7 @@ internal fun UaPresetEditDialog(
     var name by remember { mutableStateOf(initial?.label.orEmpty()) }
     var ua by remember { mutableStateOf(initial?.ua.orEmpty()) }
     val valid = name.isNotBlank() && ua.isNotBlank()
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

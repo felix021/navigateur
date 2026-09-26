@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.felix021.navigateur.R
+import com.felix021.navigateur.ui.accentLabelRes
 import com.felix021.navigateur.data.AdBlockStatus
 import com.felix021.navigateur.data.BrowserSettings
 import com.felix021.navigateur.data.ProxyRepository
@@ -112,6 +113,7 @@ fun SettingsScreen(controller: BrowserController) {
     var showEngine by remember { mutableStateOf(false) }
     var showLanguage by remember { mutableStateOf(false) }
     var showTheme by remember { mutableStateOf(false) }
+    var showAccent by remember { mutableStateOf(false) }
     var showFont by remember { mutableStateOf(false) }
     var showUa by remember { mutableStateOf(false) }
     var showUaEdit by remember { mutableStateOf(false) }
@@ -183,6 +185,12 @@ fun SettingsScreen(controller: BrowserController) {
                 entryId = "s.theme",
                 value = stringResource(THEME_LABELS[settings.themeMode] ?: R.string.follow_system),
             ) { showTheme = true }
+            SettingItem(
+                title = stringResource(R.string.settings_accent),
+                entryId = "s.accent",
+                value = if (settings.accent == "custom") stringResource(R.string.accent_custom)
+                else stringResource(accentLabelRes(settings.accent)),
+            ) { showAccent = true }
             SettingsItemShell("s.zoom") {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -318,6 +326,15 @@ fun SettingsScreen(controller: BrowserController) {
                 )
                 showLanguage = false
             },
+        )
+    }
+    if (showAccent) {
+        AccentDialog(
+            currentAccent = settings.accent,
+            currentHue = settings.accentHue,
+            dark = com.felix021.navigateur.ui.isDarkTheme(settings.themeMode),
+            onDismiss = { showAccent = false },
+            onSelect = { key, hue -> update { s -> s.copy(accent = key, accentHue = hue) } },
         )
     }
     if (showTheme) {

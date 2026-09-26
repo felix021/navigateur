@@ -129,6 +129,16 @@
     <string name="settings_language">语言</string>
     <string name="settings_search_hint">搜索设置</string>
     <string name="settings_theme">主题</string>
+    <string name="settings_accent">主题色</string>
+    <string name="accent_blue">蓝色</string>
+    <string name="accent_teal">青绿</string>
+    <string name="accent_green">绿色</string>
+    <string name="accent_orange">橙色</string>
+    <string name="accent_rose">玫瑰红</string>
+    <string name="accent_slate">石板灰</string>
+    <string name="accent_custom">自定义</string>
+    <string name="accent_custom_hint">拖动滑块选择色相，松手即生效</string>
+
     <string name="theme_light">亮色</string>
     <string name="theme_dark">暗色</string>
     <string name="settings_zoom">页面缩放</string>

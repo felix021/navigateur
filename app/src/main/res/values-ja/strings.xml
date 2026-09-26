@@ -129,6 +129,16 @@
     <string name="settings_language">言語</string>
     <string name="settings_search_hint">設定を検索</string>
     <string name="settings_theme">テーマ</string>
+    <string name="settings_accent">アクセントカラー</string>
+    <string name="accent_blue">青</string>
+    <string name="accent_teal">ティール</string>
+    <string name="accent_green">緑</string>
+    <string name="accent_orange">オレンジ</string>
+    <string name="accent_rose">ローズ</string>
+    <string name="accent_slate">スレート</string>
+    <string name="accent_custom">カスタム</string>
+    <string name="accent_custom_hint">スライダーで色相を選択、指を離すと適用されます</string>
+
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
     <string name="settings_zoom">ページの拡大縮小</string>

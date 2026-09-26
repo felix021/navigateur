@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +28,7 @@ fun AppRoot(controller: BrowserController) {
         ThemeMode.LIGHT -> false
         ThemeMode.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
-    MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
+    MaterialTheme(colorScheme = accentColorScheme(settings.accent, settings.accentHue, dark)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             // 子页面（标签/书签/设置）返回 → 回浏览页；浏览页自身由 BrowserScreen 的
             // BackHandler 处理（页面后退 / 退出确认），内层 handler 优先消费
