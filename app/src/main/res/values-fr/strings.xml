@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Navigateur</string>
+    <string name="app_name">Puff Nav</string>
 
     <!-- Commun -->
     <string name="ok">OK</string>
@@ -41,7 +41,7 @@
     <string name="status_network">Réseau</string>
     <string name="status_charging">En charge</string>
 
-    <!-- Navigateur : menu et actions rapides -->
+    <!-- Puff : menu et actions rapides -->
     <string name="menu_reload">Recharger</string>
     <string name="menu_desktop_mode">Mode bureau</string>
     <string name="menu_zoom">Zoom (%1$d%%)</string>

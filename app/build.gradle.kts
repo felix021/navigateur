@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.felix021.navigateur"
+    namespace = "com.felix021.puff"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.felix021.navigateur"
+        applicationId = "com.felix021.puff"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "navigateur"
+rootProject.name = "puff"
 include(":app")

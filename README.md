@@ -1,4 +1,4 @@
-# Navigateur
+# Puff
 
 自用 Android 浏览器（Kotlin + Jetpack Compose + WebView）。
 
