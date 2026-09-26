@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">Règles de commutation auto</string>
     <string name="proxy_rules_hint">Les domaines avec règle direct contournent le proxy ; ceux à règle proxy l\'utilisent (avec « Non correspondant : direct »)</string>
     <string name="proxy_rule_pattern_label">Domaine, ex. baidu.com ou *.google.com</string>
+    <string name="proxy_import_source_paste">Coller du texte</string>
+    <string name="proxy_import_source_url">Depuis une URL</string>
     <string name="proxy_import_no_rules">Aucune règle valide analysée</string>
     <string name="proxy_import_paste_hint">Collez les règles (format AutoProxy / gfwlist)</string>
     <string name="proxy_import_url_hint">Ou URL de la liste de règles</string>

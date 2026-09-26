@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">Regeln für automatische Umschaltung</string>
     <string name="proxy_rules_hint">Direkt-Regel-Dominen umgehen den Proxy; Proxy-Regel-Dominen nutzen ihn (mit „Ohne Treffer: direkt“)</string>
     <string name="proxy_rule_pattern_label">Domain, z. B. baidu.com oder *.google.com</string>
+    <string name="proxy_import_source_paste">Text einfügen</string>
+    <string name="proxy_import_source_url">Von URL</string>
     <string name="proxy_import_no_rules">Keine gültigen Regeln geparst</string>
     <string name="proxy_import_paste_hint">Regeln einfügen (AutoProxy / gfwlist-Format)</string>
     <string name="proxy_import_url_hint">Oder URL der Regelliste</string>

@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">自動切り替えルール</string>
     <string name="proxy_rules_hint">ダイレクトルールのドメインはプロキシを通過せず、プロキシルールのドメインはプロキシを通ります（「未一致はダイレクト」時）</string>
     <string name="proxy_rule_pattern_label">ドメイン（例：baidu.com または *.google.com）</string>
+    <string name="proxy_import_source_paste">テキストを貼り付け</string>
+    <string name="proxy_import_source_url">URL からダウンロード</string>
     <string name="proxy_import_no_rules">有効なルールが解析されませんでした</string>
     <string name="proxy_import_paste_hint">ルールを貼り付け（AutoProxy / gfwlist 形式）</string>
     <string name="proxy_import_url_hint">またはルールリストの URL</string>

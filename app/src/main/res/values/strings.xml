@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">自动切换规则</string>
     <string name="proxy_rules_hint">直连规则的域名不走代理；代理规则的域名走代理（配合「未命中直连」时）</string>
     <string name="proxy_rule_pattern_label">域名，如 baidu.com 或 *.google.com</string>
+    <string name="proxy_import_source_paste">粘贴文本</string>
+    <string name="proxy_import_source_url">URL 下载</string>
     <string name="proxy_import_no_rules">没有解析到有效规则</string>
     <string name="proxy_import_paste_hint">粘贴规则文本（AutoProxy / gfwlist 格式）</string>
     <string name="proxy_import_url_hint">或规则列表 URL</string>

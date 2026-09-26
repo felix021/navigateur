@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">Правила авто-переключения</string>
     <string name="proxy_rules_hint">Домены с правилом direct идут напрямую; с правилом proxy — через прокси (при «Без совпадения: напрямую»)</string>
     <string name="proxy_rule_pattern_label">Домен, напр. baidu.com или *.google.com</string>
+    <string name="proxy_import_source_paste">Вставить текст</string>
+    <string name="proxy_import_source_url">Скачать по URL</string>
     <string name="proxy_import_no_rules">Подходящих правил не найдено</string>
     <string name="proxy_import_paste_hint">Вставьте правила (формат AutoProxy / gfwlist)</string>
     <string name="proxy_import_url_hint">Или URL списка правил</string>

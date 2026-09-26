@@ -198,6 +198,8 @@
     <string name="proxy_rules_title">Auto switch rules</string>
     <string name="proxy_rules_hint">Direct-rule domains bypass the proxy; proxy-rule domains use it (with \"Unmatched: direct\")</string>
     <string name="proxy_rule_pattern_label">Domain, e.g. baidu.com or *.google.com</string>
+    <string name="proxy_import_source_paste">Paste text</string>
+    <string name="proxy_import_source_url">From URL</string>
     <string name="proxy_import_no_rules">No valid rules parsed</string>
     <string name="proxy_import_paste_hint">Paste rules (AutoProxy / gfwlist format)</string>
     <string name="proxy_import_url_hint">Or rule list URL</string>

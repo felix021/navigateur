@@ -90,7 +90,7 @@ internal fun SettingItem(title: String, value: String, entryId: String? = null, 
     SettingsItemShell(entryId) {
         Row(
             Modifier.fillMaxWidth().clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
@@ -121,7 +121,7 @@ internal fun SwitchItem(
 ) {
     SettingsItemShell(entryId) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {

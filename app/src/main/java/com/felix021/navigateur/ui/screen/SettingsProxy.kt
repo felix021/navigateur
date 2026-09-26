@@ -20,6 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -390,7 +393,8 @@ private fun ProxyRulesDialog(
 // ---------- 规则列表导入 ----------
 
 /**
- * 导入 AutoProxy / ABP 风格规则列表：粘贴文本或 URL 下载。
+ * 导入 AutoProxy / ABP 风格规则列表。
+ * 布局：来源分段（粘贴 / URL）→ 对应输入区 → 导入方式与未命中走向 → 解析预览 → 确认。
  * 导入方式：追加（合并去重）/ 替换（清空后导入）。
  */
 @Composable
@@ -401,6 +405,7 @@ private fun ProxyImportDialog(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var source by remember { mutableStateOf("paste") }
     var text by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }
     var replace by remember { mutableStateOf(false) }
@@ -422,55 +427,121 @@ private fun ProxyImportDialog(
         onDismissRequest = { if (!loading) onDismiss() },
         title = { Text(stringResource(R.string.proxy_import_entry)) },
         text = {
-            Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it; preview = null },
-                    label = { Text(stringResource(R.string.proxy_import_paste_hint)) },
-                    minLines = 4,
-                    maxLines = 8,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.padding(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState())) {
+                // 来源切换：一次只用一种输入，避免两个框并列显得杂乱
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    SegmentedButton(
+                        selected = source == "paste",
+                        onClick = { source = "paste" },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    ) { Text(stringResource(R.string.proxy_import_source_paste)) }
+                    SegmentedButton(
+                        selected = source == "url",
+                        onClick = { source = "url" },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    ) { Text(stringResource(R.string.proxy_import_source_url)) }
+                }
+                Spacer(Modifier.height(12.dp))
+
+                if (source == "paste") {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it; preview = null },
+                        label = { Text(stringResource(R.string.proxy_import_paste_hint)) },
+                        minLines = 6,
+                        maxLines = 10,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it; preview = null },
                         label = { Text(stringResource(R.string.proxy_import_url_hint)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        enabled = !loading,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                    TextButton(
-                        enabled = !loading && url.isNotBlank(),
-                        onClick = {
-                            loading = true
-                            scope.launch {
-                                try {
-                                    val content = withContext(Dispatchers.IO) {
-                                        val conn = URL(url.trim()).openConnection() as HttpURLConnection
-                                        conn.connectTimeout = 15000
-                                        conn.readTimeout = 30000
-                                        try {
-                                            if (conn.responseCode !in 200..299) {
-                                                throw IllegalStateException("HTTP ${conn.responseCode}")
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TextButton(
+                            enabled = !loading && url.isNotBlank(),
+                            onClick = {
+                                loading = true
+                                scope.launch {
+                                    try {
+                                        val content = withContext(Dispatchers.IO) {
+                                            val conn = URL(url.trim()).openConnection() as HttpURLConnection
+                                            conn.connectTimeout = 15000
+                                            conn.readTimeout = 30000
+                                            try {
+                                                if (conn.responseCode !in 200..299) {
+                                                    throw IllegalStateException("HTTP ${conn.responseCode}")
+                                                }
+                                                conn.inputStream.bufferedReader().readText()
+                                            } finally {
+                                                conn.disconnect()
                                             }
-                                            conn.inputStream.bufferedReader().readText()
-                                        } finally {
-                                            conn.disconnect()
                                         }
+                                        text = content
+                                        parse(content)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.proxy_import_download_failed, e.message),
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    } finally {
+                                        loading = false
                                     }
-                                    text = content
-                                    parse(content)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, context.getString(R.string.proxy_import_download_failed, e.message), Toast.LENGTH_LONG).show()
-                                } finally {
-                                    loading = false
                                 }
-                            }
-                        },
-                    ) { Text(if (loading) stringResource(R.string.downloading) else stringResource(R.string.download)) }
+                            },
+                        ) {
+                            Text(
+                                if (loading) stringResource(R.string.downloading)
+                                else stringResource(R.string.download),
+                            )
+                        }
+                    }
                 }
-                Spacer(Modifier.padding(6.dp))
+
+                if (source == "paste" && text.isNotBlank() && !loading) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = { parse(text) }) {
+                            Text(stringResource(R.string.parse_preview))
+                        }
+                        preview?.let { r ->
+                            val directCount = r.rules.count { it.action == "direct" }
+                            val proxyCount = r.rules.size - directCount
+                            Text(
+                                stringResource(
+                                    R.string.proxy_import_parsed, r.rules.size, directCount, proxyCount,
+                                    if (r.skipped > 0) stringResource(R.string.proxy_import_skipped, r.skipped) else "",
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+                if (source == "url") {
+                    preview?.let { r ->
+                        val directCount = r.rules.count { it.action == "direct" }
+                        val proxyCount = r.rules.size - directCount
+                        Text(
+                            stringResource(
+                                R.string.proxy_import_parsed, r.rules.size, directCount, proxyCount,
+                                if (r.skipped > 0) stringResource(R.string.proxy_import_skipped, r.skipped) else "",
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = !replace, onClick = { replace = false })
                     Text(stringResource(R.string.import_append), Modifier.clickable { replace = false })
@@ -478,10 +549,19 @@ private fun ProxyImportDialog(
                     RadioButton(selected = replace, onClick = { replace = true })
                     Text(stringResource(R.string.import_replace), Modifier.clickable { replace = true })
                 }
+                if (replace && preview != null) {
+                    Text(
+                        stringResource(R.string.proxy_import_will_clear, existing.size),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
                 Text(
                     stringResource(R.string.proxy_import_default_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = autoDefault == "direct", onClick = { autoDefault = "direct" })
@@ -489,29 +569,6 @@ private fun ProxyImportDialog(
                     Spacer(Modifier.padding(10.dp))
                     RadioButton(selected = autoDefault == "proxy", onClick = { autoDefault = "proxy" })
                     Text(stringResource(R.string.proxy_default_proxy), Modifier.clickable { autoDefault = "proxy" })
-                }
-                TextButton(
-                    enabled = text.isNotBlank() && !loading,
-                    onClick = { parse(text) },
-                ) { Text(stringResource(R.string.parse_preview)) }
-                preview?.let { r ->
-                    val directCount = r.rules.count { it.action == "direct" }
-                    val proxyCount = r.rules.size - directCount
-                    Text(
-                        stringResource(
-                            R.string.proxy_import_parsed, r.rules.size, directCount, proxyCount,
-                            if (r.skipped > 0) stringResource(R.string.proxy_import_skipped, r.skipped) else "",
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (replace) {
-                        Text(
-                            stringResource(R.string.proxy_import_will_clear, existing.size),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
                 }
             }
         },
