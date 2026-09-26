@@ -9,6 +9,7 @@ import com.felix021.navigateur.MainActivity
 import com.felix021.navigateur.NavigateurApp
 import com.felix021.navigateur.browser.TabManager
 import com.felix021.navigateur.util.UrlUtils
+import com.felix021.navigateur.R
 
 enum class Screen { Browser, Tabs, Bookmarks, Settings }
 
@@ -137,7 +138,7 @@ class BrowserController(val activity: MainActivity) {
         }
         if (passwords) container.passwords.clear()
         if (history) container.history.clear()
-        Toast.makeText(activity, "已清理", Toast.LENGTH_SHORT).show()
+        Toast.makeText(activity, activity.getString(R.string.cleared), Toast.LENGTH_SHORT).show()
     }
 
     /** 已知站点列表（密码库 + 书签 + 历史），用于按站点清理 */
@@ -177,6 +178,6 @@ class BrowserController(val activity: MainActivity) {
         }
         if (passwords) container.passwords.remove(host)
         if (history) container.history.removeByHost(host)
-        Toast.makeText(activity, "已清理 $host", Toast.LENGTH_SHORT).show()
+        Toast.makeText(activity, activity.getString(R.string.cleared_site, host), Toast.LENGTH_SHORT).show()
     }
 }

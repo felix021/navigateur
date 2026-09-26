@@ -1,0 +1,223 @@
+<resources>
+    <string name="app_name">Navigateur</string>
+
+    <!-- Común -->
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="back">Atrás</string>
+    <string name="done">Hecho</string>
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="add">Añadir</string>
+    <string name="close">Cerrar</string>
+    <string name="clear">Borrar</string>
+    <string name="retry">Reintentar</string>
+    <string name="remove">Quitar</string>
+    <string name="follow_system">Seguir al sistema</string>
+    <string name="download">Descargar</string>
+    <string name="downloading">Descargando…</string>
+    <string name="import_action">Importar</string>
+    <string name="add_prefixed">＋ Añadir</string>
+
+    <!-- Página de inicio -->
+    <string name="start_no_bookmarks">Aún no hay marcadores: toca la estrella de la barra inferior para guardar la página actual</string>
+    <string name="search_or_url">Buscar o escribir una dirección</string>
+
+    <!-- Marcadores -->
+    <string name="bookmarks_title">Marcadores</string>
+    <string name="bookmarks_empty">Sin marcadores</string>
+    <string name="bookmark_add">Añadir marcador</string>
+    <string name="bookmark_edit">Editar marcador</string>
+    <string name="field_title">Título</string>
+    <string name="field_url">URL</string>
+
+    <!-- Pestañas -->
+    <string name="tabs_count">Pestañas (%1$d)</string>
+    <string name="tab_new">Nueva pestaña</string>
+    <string name="new_tab_title">Página de inicio</string>
+
+    <!-- Barra de estado -->
+    <string name="status_network">Red</string>
+    <string name="status_charging">Cargando</string>
+
+    <!-- Navegador: menú y acciones rápidas -->
+    <string name="menu_reload">Recargar</string>
+    <string name="menu_desktop_mode">Modo escritorio</string>
+    <string name="menu_zoom">Zoom (%1$d%%)</string>
+    <string name="menu_proxy">Proxy: %1$s</string>
+    <string name="label_direct">Directo</string>
+    <string name="label_auto">Auto</string>
+    <string name="label_proxy">Proxy</string>
+    <string name="label_via_proxy">Usar proxy</string>
+    <string name="adblock_block_site">Bloquear anuncios en este sitio</string>
+    <string name="adblock_unblock_site">No bloquear anuncios en este sitio</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="copied_url">URL copiada</string>
+    <string name="cd_copy_url">Copiar URL</string>
+    <string name="cd_certificate">Certificado</string>
+    <string name="cd_address">Dirección</string>
+    <string name="cd_back">Atrás</string>
+    <string name="cd_forward">Adelante</string>
+    <string name="cd_home">Inicio</string>
+    <string name="cd_bookmark">Marcador</string>
+    <string name="cd_tabs">Pestañas</string>
+    <string name="cd_menu">Menú</string>
+    <string name="cd_clear_input">Borrar</string>
+    <string name="exit_title">¿Salir del navegador?</string>
+    <string name="exit_message">No hay ninguna página a la que volver. ¿Salir de todos modos?</string>
+    <string name="exit_confirm">Salir</string>
+    <string name="cert_title">Información del certificado</string>
+    <string name="cert_none">No hay certificado disponible (no es HTTPS o la página fue reemplazada)</string>
+    <string name="cert_issued_to">Emitido a</string>
+    <string name="cert_issued_by">Emitido por</string>
+    <string name="cert_valid_from">Válido desde</string>
+    <string name="cert_valid_to">Válido hasta</string>
+    <string name="zoom_title">Zoom de la página</string>
+    <string name="zoom_desc">Escala toda la página (diseño e imágenes), se aplica en vivo</string>
+    <string name="page_load_failed">No se pudo cargar la página</string>
+    <string name="network_error">Error de red</string>
+
+    <!-- Descarga y borrado -->
+    <string name="download_started">Descarga iniciada</string>
+    <string name="download_failed">No se puede descargar: %1$s</string>
+    <string name="cleared">Borrado</string>
+    <string name="cleared_site">Se borró %1$s</string>
+
+    <!-- Guardar contraseña -->
+    <string name="save_password_title">¿Guardar contraseña?</string>
+    <string name="save_password_site">Sitio: %1$s</string>
+    <string name="save_password_account">Cuenta: %1$s</string>
+    <string name="save_password_password">Contraseña: ••••••••</string>
+    <string name="save_password_replacing">Reemplazará la cuenta guardada %1$s de este sitio</string>
+    <string name="save_password_no">No guardar</string>
+
+    <!-- Motores de búsqueda (los nombres de marca no cambian) -->
+    <string name="engine_baidu">Baidu</string>
+
+    <!-- Perfiles de UA -->
+    <string name="ua_default">Predeterminado (dispositivo)</string>
+    <string name="ua_win">Escritorio · Windows</string>
+    <string name="ua_mac">Escritorio · macOS</string>
+    <string name="ua_linux">Escritorio · Linux</string>
+    <string name="ua_iphone">iPhone</string>
+    <string name="ua_huawei">Huawei Mate 60 Pro</string>
+    <string name="ua_xiaomi">Xiaomi 14</string>
+    <string name="ua_vivo">vivo X100</string>
+    <string name="ua_oppo">OPPO Find X7</string>
+    <string name="ua_custom_entry">Personalizado…</string>
+
+    <!-- Ajustes: página principal -->
+    <string name="settings_title">Ajustes</string>
+    <string name="section_general">General</string>
+    <string name="section_display">Pantalla</string>
+    <string name="section_website">Sitio web</string>
+    <string name="section_more">Más</string>
+    <string name="settings_homepage">Página de inicio</string>
+    <string name="homepage_builtin">Página de inicio integrada</string>
+    <string name="homepage_hint">Escriba about:home para la página integrada; si no, las pestañas nuevas cargan esta URL</string>
+    <string name="settings_search_engine">Motor de búsqueda</string>
+    <string name="settings_save_passwords">Guardar contraseñas</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="settings_zoom">Zoom de la página</string>
+    <string name="settings_font">Fuente</string>
+    <string name="font_default">Predeterminada (según el sitio)</string>
+    <string name="font_sans">Sin serifa</string>
+    <string name="font_serif">Con serifa</string>
+    <string name="font_monospace">Monoespaciada</string>
+    <string name="settings_landscape_side">Lado de la barra de herramientas apaisada</string>
+    <string name="landscape_left">Izquierda</string>
+    <string name="landscape_right">Derecha</string>
+    <string name="settings_landscape_fullscreen">Apaisado a pantalla completa</string>
+    <string name="landscape_fullscreen_desc">Ocultar la barra de estado en apaisado para usar toda la altura de la pantalla</string>
+    <string name="settings_landscape_safe_area">Zona segura inferior apaisada</string>
+    <string name="landscape_safe_area_desc">Mostrar la barra de gestos del sistema y evitarla; desactívelo para pantalla completa real (la info dibujada permanece)</string>
+    <string name="settings_desktop_default">Modo escritorio por defecto</string>
+    <string name="desktop_default_desc">Abrir pestañas nuevas con UA de escritorio (si el perfil de UA es Predeterminado)</string>
+    <string name="settings_ua">User-Agent</string>
+    <string name="ua_custom_title">User-Agent personalizado</string>
+    <string name="ua_custom_hint">Se aplica al instante y recarga las páginas abiertas; deje vacío para volver al predeterminado</string>
+    <string name="entry_adblock">Bloqueo de anuncios</string>
+    <string name="entry_proxy">Proxy</string>
+    <string name="entry_developer">Desarrollador</string>
+    <string name="entry_privacy">Privacidad</string>
+    <string name="adblock_off_status">Desactivado · %1$d reglas</string>
+    <string name="adblock_updating">Actualizando…</string>
+    <string name="adblock_update_failed">Error al actualizar: %1$s (toque para reintentar)</string>
+    <string name="adblock_rules_updated">%1$d reglas · actualizadas %2$s</string>
+    <string name="adblock_rules_builtin">%1$d reglas · versión integrada (toque para actualizar en línea)</string>
+    <string name="proxy_status_auto">Conmutación automática (salida: %1$s, %2$s)</string>
+    <string name="proxy_status_fixed">Fija: %1$s</string>
+    <string name="proxy_outlet_unset">(sin salida definida)</string>
+    <string name="proxy_default_direct">Sin coincidencia: directo</string>
+    <string name="proxy_default_proxy">Sin coincidencia: por proxy</string>
+    <string name="developer_summary">Herramientas en página / depuración remota</string>
+    <string name="developer_remote_on">Depuración remota</string>
+    <string name="privacy_summary">Borrar datos / borrar por sitio</string>
+
+    <!-- Ajustes: bloqueo de anuncios -->
+    <string name="adblock_switch">Bloquear anuncios</string>
+    <string name="adblock_switch_desc">Basado en EasyList + EasyList China; bloquea peticiones y oculta elementos publicitarios</string>
+    <string name="adblock_update">Actualizar reglas de anuncios</string>
+    <string name="adblock_allowlist">Lista blanca de sitios</string>
+    <string name="adblock_allowlist_empty">Vacía (activa en todos los sitios)</string>
+    <string name="adblock_allowlist_count">%1$d sitios sin bloquear</string>
+    <string name="adblock_allowlist_hint">La lista blanca está vacía; el bloqueo está activo en todos los sitios.\nEl menú del navegador puede desactivarlo solo para el sitio actual.</string>
+
+    <!-- Ajustes: proxy -->
+    <string name="proxy_current_mode">Modo actual</string>
+    <string name="proxy_outlets">Salidas de proxy</string>
+    <string name="proxy_not_added">Ninguna</string>
+    <string name="proxy_rules_count">%1$d reglas (directo %2$d · proxy %3$d)</string>
+    <string name="proxy_import_entry">Importar lista de reglas</string>
+    <string name="proxy_import_entry_desc">Pegue texto o escriba una URL para descargar; admite formatos AutoProxy / gfwlist</string>
+    <string name="proxy_mode_title">Modo proxy</string>
+    <string name="proxy_mode_fixed_route">Fija por %1$s</string>
+    <string name="proxy_mode_auto_rules">Conmutación automática (por reglas)</string>
+    <string name="proxy_default_outlet_hint">Salida predeterminada (base del reparto por reglas con varias salidas):</string>
+    <string name="proxy_unmatched_label">Dominios sin regla coincidente:</string>
+    <string name="proxy_unmatched_proxy">Por proxy (las reglas direct se vuelven bypass; estilo SwitchyOmega)</string>
+    <string name="proxy_unmatched_direct">Directo (las reglas proxy aplican por sitio; estilo AutoProxy / gfwlist)</string>
+    <string name="proxy_no_outlet_hint">Aún no hay salidas de proxy — añada una en «Salidas de proxy»</string>
+    <string name="proxy_add_outlet">Añadir salida de proxy</string>
+    <string name="field_name">Nombre</string>
+    <string name="field_host">Host</string>
+    <string name="field_port">Puerto</string>
+    <string name="proxy_add_rule">Añadir regla</string>
+    <string name="proxy_rules_title">Reglas de conmutación automática</string>
+    <string name="proxy_rules_hint">Los dominios con regla direct evitan el proxy; los de regla proxy lo usan (con «Sin coincidencia: directo»)</string>
+    <string name="proxy_rule_pattern_label">Dominio, p. ej. baidu.com o *.google.com</string>
+    <string name="proxy_import_no_rules">No se analizaron reglas válidas</string>
+    <string name="proxy_import_paste_hint">Pegue reglas (formato AutoProxy / gfwlist)</string>
+    <string name="proxy_import_url_hint">O URL de la lista de reglas</string>
+    <string name="proxy_import_download_failed">Error al descargar: %1$s</string>
+    <string name="import_append">Añadir</string>
+    <string name="import_replace">Reemplazar existentes</string>
+    <string name="proxy_import_default_hint">Tras importar AutoProxy / gfwlist se recomienda «Sin coincidencia: directo»: los dominios listados pasan por el proxy, el resto va directo.</string>
+    <string name="parse_preview">Vista previa del análisis</string>
+    <string name="proxy_import_parsed">%1$d reglas analizadas (directo %2$d · proxy %3$d)%4$s</string>
+    <string name="proxy_import_skipped">, se omitieron %1$d reglas no admitidas</string>
+    <string name="proxy_import_will_clear">Se borrarán las %1$d reglas existentes</string>
+
+    <!-- Ajustes: desarrollador -->
+    <string name="dev_remote_title">Depuración remota (chrome://inspect / CDP)</string>
+    <string name="dev_remote_desc">Desactivado por defecto. Al activarlo, un ordenador puede inspeccionar páginas con Chrome DevTools completo vía adb; también se conmuta con: am start --ez remote_debug true</string>
+    <string name="dev_eruda_title">Herramientas en la página (eruda)</string>
+    <string name="dev_eruda_desc">Vea Console / Elements / Network / Storage directamente en el móvil; también se conmuta con: am start --ez dev_tools true</string>
+
+    <!-- Ajustes: privacidad -->
+    <string name="privacy_clear_all">Borrar datos de navegación</string>
+    <string name="privacy_clear_all_desc">Cookies / almacenamiento del sitio / caché / historial / contraseñas (todo)</string>
+    <string name="privacy_clear_site">Borrar por sitio</string>
+    <string name="privacy_clear_site_desc">Borrar almacenamiento / cookies / contraseñas de un sitio concreto</string>
+    <string name="field_site_domain">Dominio del sitio</string>
+    <string name="clear_data_storage">Almacenamiento del sitio (localStorage etc.)</string>
+    <string name="clear_data_passwords">Contraseñas guardadas</string>
+    <string name="clear_data_history_site">Historial (este sitio)</string>
+    <string name="clear_data_cache">Caché</string>
+    <string name="clear_data_form">Datos de formulario</string>
+    <string name="clear_data_history">Historial de navegación</string>
+</resources>

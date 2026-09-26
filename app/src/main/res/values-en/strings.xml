@@ -1,0 +1,223 @@
+<resources>
+    <string name="app_name">Navigateur</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="back">Back</string>
+    <string name="done">Done</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="add">Add</string>
+    <string name="close">Close</string>
+    <string name="clear">Clear</string>
+    <string name="retry">Retry</string>
+    <string name="remove">Remove</string>
+    <string name="follow_system">Follow system</string>
+    <string name="download">Download</string>
+    <string name="downloading">Downloading…</string>
+    <string name="import_action">Import</string>
+    <string name="add_prefixed">＋ Add</string>
+
+    <!-- Start page -->
+    <string name="start_no_bookmarks">No bookmarks yet: tap the star in the bottom bar to bookmark the current page</string>
+    <string name="search_or_url">Search or enter address</string>
+
+    <!-- Bookmarks -->
+    <string name="bookmarks_title">Bookmarks</string>
+    <string name="bookmarks_empty">No bookmarks</string>
+    <string name="bookmark_add">Add bookmark</string>
+    <string name="bookmark_edit">Edit bookmark</string>
+    <string name="field_title">Title</string>
+    <string name="field_url">URL</string>
+
+    <!-- Tabs -->
+    <string name="tabs_count">Tabs (%1$d)</string>
+    <string name="tab_new">New tab</string>
+    <string name="new_tab_title">Start page</string>
+
+    <!-- Status strip -->
+    <string name="status_network">Network</string>
+    <string name="status_charging">Charging</string>
+
+    <!-- Browser: menu and quick actions -->
+    <string name="menu_reload">Reload</string>
+    <string name="menu_desktop_mode">Desktop mode</string>
+    <string name="menu_zoom">Zoom (%1$d%%)</string>
+    <string name="menu_proxy">Proxy: %1$s</string>
+    <string name="label_direct">Direct</string>
+    <string name="label_auto">Auto</string>
+    <string name="label_proxy">Proxy</string>
+    <string name="label_via_proxy">Use proxy</string>
+    <string name="adblock_block_site">Block ads on this site</string>
+    <string name="adblock_unblock_site">Don\'t block ads on this site</string>
+    <string name="menu_settings">Settings</string>
+    <string name="copied_url">URL copied</string>
+    <string name="cd_copy_url">Copy URL</string>
+    <string name="cd_certificate">Certificate</string>
+    <string name="cd_address">Address</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_forward">Forward</string>
+    <string name="cd_home">Home</string>
+    <string name="cd_bookmark">Bookmark</string>
+    <string name="cd_tabs">Tabs</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_clear_input">Clear</string>
+    <string name="exit_title">Exit browser?</string>
+    <string name="exit_message">There is no page to go back to. Exit anyway?</string>
+    <string name="exit_confirm">Exit</string>
+    <string name="cert_title">Certificate</string>
+    <string name="cert_none">No certificate available (not HTTPS, or the page was replaced)</string>
+    <string name="cert_issued_to">Issued to</string>
+    <string name="cert_issued_by">Issued by</string>
+    <string name="cert_valid_from">Valid from</string>
+    <string name="cert_valid_to">Valid until</string>
+    <string name="zoom_title">Page zoom</string>
+    <string name="zoom_desc">Scales the whole page (layout and images), applied live</string>
+    <string name="page_load_failed">Page failed to load</string>
+    <string name="network_error">Network error</string>
+
+    <!-- Download and clear -->
+    <string name="download_started">Download started</string>
+    <string name="download_failed">Cannot download: %1$s</string>
+    <string name="cleared">Cleared</string>
+    <string name="cleared_site">Cleared %1$s</string>
+
+    <!-- Save password -->
+    <string name="save_password_title">Save password?</string>
+    <string name="save_password_site">Site: %1$s</string>
+    <string name="save_password_account">Account: %1$s</string>
+    <string name="save_password_password">Password: ••••••••</string>
+    <string name="save_password_replacing">Will replace the saved account %1$s for this site</string>
+    <string name="save_password_no">Don\'t save</string>
+
+    <!-- Search engines (brand names stay as-is) -->
+    <string name="engine_baidu">Baidu</string>
+
+    <!-- UA presets -->
+    <string name="ua_default">Default (device)</string>
+    <string name="ua_win">Desktop · Windows</string>
+    <string name="ua_mac">Desktop · macOS</string>
+    <string name="ua_linux">Desktop · Linux</string>
+    <string name="ua_iphone">iPhone</string>
+    <string name="ua_huawei">Huawei Mate 60 Pro</string>
+    <string name="ua_xiaomi">Xiaomi 14</string>
+    <string name="ua_vivo">vivo X100</string>
+    <string name="ua_oppo">OPPO Find X7</string>
+    <string name="ua_custom_entry">Custom…</string>
+
+    <!-- Settings: main page -->
+    <string name="settings_title">Settings</string>
+    <string name="section_general">General</string>
+    <string name="section_display">Display</string>
+    <string name="section_website">Website</string>
+    <string name="section_more">More</string>
+    <string name="settings_homepage">Homepage</string>
+    <string name="homepage_builtin">Built-in start page</string>
+    <string name="homepage_hint">Use about:home for the built-in start page; otherwise new tabs load this URL directly</string>
+    <string name="settings_search_engine">Search engine</string>
+    <string name="settings_save_passwords">Save passwords</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_zoom">Page zoom</string>
+    <string name="settings_font">Font</string>
+    <string name="font_default">Default (follow site)</string>
+    <string name="font_sans">Sans-serif</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_monospace">Monospace</string>
+    <string name="settings_landscape_side">Landscape toolbar side</string>
+    <string name="landscape_left">Left</string>
+    <string name="landscape_right">Right</string>
+    <string name="settings_landscape_fullscreen">Landscape fullscreen</string>
+    <string name="landscape_fullscreen_desc">Hide the status bar in landscape to use the full screen height</string>
+    <string name="settings_landscape_safe_area">Landscape bottom safe area</string>
+    <string name="landscape_safe_area_desc">Show the system gesture bar and avoid it; turn off for true fullscreen (self-drawn status info remains)</string>
+    <string name="settings_desktop_default">Desktop mode by default</string>
+    <string name="desktop_default_desc">Open new tabs with the desktop UA by default (applies when the UA preset is Default)</string>
+    <string name="settings_ua">User-Agent</string>
+    <string name="ua_custom_title">Custom User-Agent</string>
+    <string name="ua_custom_hint">Takes effect immediately and refreshes open pages; leave empty to fall back to default</string>
+    <string name="entry_adblock">Ad blocking</string>
+    <string name="entry_proxy">Proxy</string>
+    <string name="entry_developer">Developer</string>
+    <string name="entry_privacy">Privacy</string>
+    <string name="adblock_off_status">Off · %1$d rules</string>
+    <string name="adblock_updating">Updating…</string>
+    <string name="adblock_update_failed">Update failed: %1$s (tap to retry)</string>
+    <string name="adblock_rules_updated">%1$d rules · updated %2$s</string>
+    <string name="adblock_rules_builtin">%1$d rules · built-in version (tap to update online)</string>
+    <string name="proxy_status_auto">Auto switch (outlet: %1$s, %2$s)</string>
+    <string name="proxy_status_fixed">Fixed: %1$s</string>
+    <string name="proxy_outlet_unset">(no outlet set)</string>
+    <string name="proxy_default_direct">Unmatched: direct</string>
+    <string name="proxy_default_proxy">Unmatched: use proxy</string>
+    <string name="developer_summary">In-page tools / remote debugging</string>
+    <string name="developer_remote_on">Remote debugging</string>
+    <string name="privacy_summary">Clear browsing data / clear per site</string>
+
+    <!-- Settings: ad blocking -->
+    <string name="adblock_switch">Block ads</string>
+    <string name="adblock_switch_desc">Based on EasyList + EasyList China; blocks requests and hides ad elements</string>
+    <string name="adblock_update">Update ad rules</string>
+    <string name="adblock_allowlist">Site allowlist</string>
+    <string name="adblock_allowlist_empty">None (active on all sites)</string>
+    <string name="adblock_allowlist_count">%1$d sites not blocked</string>
+    <string name="adblock_allowlist_hint">Allowlist is empty; ad blocking is active on all sites.\nThe browser menu can turn it off for the current site.</string>
+
+    <!-- Settings: proxy -->
+    <string name="proxy_current_mode">Current mode</string>
+    <string name="proxy_outlets">Proxy outlets</string>
+    <string name="proxy_not_added">None</string>
+    <string name="proxy_rules_count">%1$d rules (direct %2$d · proxy %3$d)</string>
+    <string name="proxy_import_entry">Import rule list</string>
+    <string name="proxy_import_entry_desc">Paste text or enter a URL to download; supports AutoProxy / gfwlist formats</string>
+    <string name="proxy_mode_title">Proxy mode</string>
+    <string name="proxy_mode_fixed_route">Fixed via %1$s</string>
+    <string name="proxy_mode_auto_rules">Auto switch (by rules)</string>
+    <string name="proxy_default_outlet_hint">Default outlet (basis for rule-based splitting with multiple outlets):</string>
+    <string name="proxy_unmatched_label">Domains not matching any rule:</string>
+    <string name="proxy_unmatched_proxy">Use proxy (direct rules become bypass; SwitchyOmega style)</string>
+    <string name="proxy_unmatched_direct">Direct (proxy rules apply per site; AutoProxy / gfwlist style)</string>
+    <string name="proxy_no_outlet_hint">No proxy outlets yet — add one under \"Proxy outlets\" first</string>
+    <string name="proxy_add_outlet">Add proxy outlet</string>
+    <string name="field_name">Name</string>
+    <string name="field_host">Host</string>
+    <string name="field_port">Port</string>
+    <string name="proxy_add_rule">Add rule</string>
+    <string name="proxy_rules_title">Auto switch rules</string>
+    <string name="proxy_rules_hint">Direct-rule domains bypass the proxy; proxy-rule domains use it (with \"Unmatched: direct\")</string>
+    <string name="proxy_rule_pattern_label">Domain, e.g. baidu.com or *.google.com</string>
+    <string name="proxy_import_no_rules">No valid rules parsed</string>
+    <string name="proxy_import_paste_hint">Paste rules (AutoProxy / gfwlist format)</string>
+    <string name="proxy_import_url_hint">Or rule list URL</string>
+    <string name="proxy_import_download_failed">Download failed: %1$s</string>
+    <string name="import_append">Append</string>
+    <string name="import_replace">Replace existing</string>
+    <string name="proxy_import_default_hint">After importing AutoProxy / gfwlist, \"Unmatched: direct\" is recommended: listed domains go through the proxy, everything else connects directly.</string>
+    <string name="parse_preview">Parse preview</string>
+    <string name="proxy_import_parsed">Parsed %1$d rules (direct %2$d · proxy %3$d)%4$s</string>
+    <string name="proxy_import_skipped">, skipped %1$d unsupported rules</string>
+    <string name="proxy_import_will_clear">Will clear the existing %1$d rules</string>
+
+    <!-- Settings: developer -->
+    <string name="dev_remote_title">Remote debugging (chrome://inspect / CDP)</string>
+    <string name="dev_remote_desc">Off by default. Once enabled, a computer can inspect pages with full Chrome DevTools over adb; also toggleable via: am start --ez remote_debug true</string>
+    <string name="dev_eruda_title">In-page developer tools (eruda)</string>
+    <string name="dev_eruda_desc">View Console / Elements / Network / Storage right on the phone; also toggleable via: am start --ez dev_tools true</string>
+
+    <!-- Settings: privacy -->
+    <string name="privacy_clear_all">Clear browsing data</string>
+    <string name="privacy_clear_all_desc">Cookies / site storage / cache / history / passwords (all)</string>
+    <string name="privacy_clear_site">Clear per site</string>
+    <string name="privacy_clear_site_desc">Clear storage / cookies / passwords for a specific site</string>
+    <string name="field_site_domain">Site domain</string>
+    <string name="clear_data_storage">Site storage (localStorage etc.)</string>
+    <string name="clear_data_passwords">Saved passwords</string>
+    <string name="clear_data_history_site">Browsing history (this site)</string>
+    <string name="clear_data_cache">Cache</string>
+    <string name="clear_data_form">Form data</string>
+    <string name="clear_data_history">Browsing history</string>
+</resources>

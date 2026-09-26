@@ -1,4 +1,223 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Navigateur</string>
+
+    <!-- 通用 -->
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="back">返回</string>
+    <string name="done">完成</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="add">添加</string>
+    <string name="close">关闭</string>
+    <string name="clear">清理</string>
+    <string name="retry">重试</string>
+    <string name="remove">移除</string>
+    <string name="follow_system">跟随系统</string>
+    <string name="download">下载</string>
+    <string name="downloading">下载中…</string>
+    <string name="import_action">导入</string>
+    <string name="add_prefixed">＋ 添加</string>
+
+    <!-- 起始页 -->
+    <string name="start_no_bookmarks">还没有收藏：点底栏星标可收藏当前页面</string>
+    <string name="search_or_url">搜索或输入网址</string>
+
+    <!-- 书签 -->
+    <string name="bookmarks_title">书签</string>
+    <string name="bookmarks_empty">暂无书签</string>
+    <string name="bookmark_add">添加书签</string>
+    <string name="bookmark_edit">编辑书签</string>
+    <string name="field_title">标题</string>
+    <string name="field_url">网址</string>
+
+    <!-- 标签 -->
+    <string name="tabs_count">标签（%1$d）</string>
+    <string name="tab_new">新建标签</string>
+    <string name="new_tab_title">起始页</string>
+
+    <!-- 状态条 -->
+    <string name="status_network">网络</string>
+    <string name="status_charging">充电中</string>
+
+    <!-- 浏览器：菜单与快捷操作 -->
+    <string name="menu_reload">刷新</string>
+    <string name="menu_desktop_mode">桌面模式</string>
+    <string name="menu_zoom">页面缩放（%1$d%%）</string>
+    <string name="menu_proxy">代理：%1$s</string>
+    <string name="label_direct">直连</string>
+    <string name="label_auto">自动</string>
+    <string name="label_proxy">代理</string>
+    <string name="label_via_proxy">走代理</string>
+    <string name="adblock_block_site">在此站点拦截广告</string>
+    <string name="adblock_unblock_site">不拦截此站点的广告</string>
+    <string name="menu_settings">设置</string>
+    <string name="copied_url">已复制网址</string>
+    <string name="cd_copy_url">复制网址</string>
+    <string name="cd_certificate">证书</string>
+    <string name="cd_address">地址</string>
+    <string name="cd_back">后退</string>
+    <string name="cd_forward">前进</string>
+    <string name="cd_home">主页</string>
+    <string name="cd_bookmark">收藏</string>
+    <string name="cd_tabs">标签</string>
+    <string name="cd_menu">菜单</string>
+    <string name="cd_clear_input">清空</string>
+    <string name="exit_title">退出浏览器？</string>
+    <string name="exit_message">当前没有可返回的页面，确定要退出吗？</string>
+    <string name="exit_confirm">退出</string>
+    <string name="cert_title">证书信息</string>
+    <string name="cert_none">当前页面没有可用证书（非 HTTPS，或页面已被替换）</string>
+    <string name="cert_issued_to">颁发给</string>
+    <string name="cert_issued_by">颁发者</string>
+    <string name="cert_valid_from">生效时间</string>
+    <string name="cert_valid_to">过期时间</string>
+    <string name="zoom_title">页面缩放</string>
+    <string name="zoom_desc">整体缩放页面内容（含布局与图片），实时生效</string>
+    <string name="page_load_failed">页面加载失败</string>
+    <string name="network_error">网络错误</string>
+
+    <!-- 下载与清理 -->
+    <string name="download_started">已开始下载</string>
+    <string name="download_failed">无法下载：%1$s</string>
+    <string name="cleared">已清理</string>
+    <string name="cleared_site">已清理 %1$s</string>
+
+    <!-- 密码保存 -->
+    <string name="save_password_title">保存密码？</string>
+    <string name="save_password_site">网站：%1$s</string>
+    <string name="save_password_account">账号：%1$s</string>
+    <string name="save_password_password">密码：••••••••</string>
+    <string name="save_password_replacing">将替换该站点已保存的账号 %1$s</string>
+    <string name="save_password_no">不保存</string>
+
+    <!-- 搜索引擎（仅需翻译的条目，其余为品牌名） -->
+    <string name="engine_baidu">百度</string>
+
+    <!-- UA 预设 -->
+    <string name="ua_default">默认（本机）</string>
+    <string name="ua_win">桌面 · Windows</string>
+    <string name="ua_mac">桌面 · macOS</string>
+    <string name="ua_linux">桌面 · Linux</string>
+    <string name="ua_iphone">iPhone</string>
+    <string name="ua_huawei">华为 Mate 60 Pro</string>
+    <string name="ua_xiaomi">小米 14</string>
+    <string name="ua_vivo">vivo X100</string>
+    <string name="ua_oppo">OPPO Find X7</string>
+    <string name="ua_custom_entry">自定义…</string>
+
+    <!-- 设置：主页面 -->
+    <string name="settings_title">设置</string>
+    <string name="section_general">常规</string>
+    <string name="section_display">显示</string>
+    <string name="section_website">网站</string>
+    <string name="section_more">更多</string>
+    <string name="settings_homepage">主页</string>
+    <string name="homepage_builtin">内置起始页</string>
+    <string name="homepage_hint">填 about:home 使用内置起始页；否则新标签页直接加载该网址</string>
+    <string name="settings_search_engine">搜索引擎</string>
+    <string name="settings_save_passwords">记录密码</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_theme">主题</string>
+    <string name="theme_light">亮色</string>
+    <string name="theme_dark">暗色</string>
+    <string name="settings_zoom">页面缩放</string>
+    <string name="settings_font">字体</string>
+    <string name="font_default">默认（跟随网站）</string>
+    <string name="font_sans">无衬线</string>
+    <string name="font_serif">衬线</string>
+    <string name="font_monospace">等宽</string>
+    <string name="settings_landscape_side">横屏工具栏位置</string>
+    <string name="landscape_left">左手边</string>
+    <string name="landscape_right">右手边</string>
+    <string name="settings_landscape_fullscreen">横屏全屏</string>
+    <string name="landscape_fullscreen_desc">横屏时隐藏系统状态栏，充分利用屏幕高度</string>
+    <string name="settings_landscape_safe_area">横屏底部安全区</string>
+    <string name="landscape_safe_area_desc">显示系统手势条并避让；关闭则完全全屏（自绘状态信息仍在）</string>
+    <string name="settings_desktop_default">默认桌面模式</string>
+    <string name="desktop_default_desc">新标签页默认以桌面 UA 打开（UA 预设为默认时生效）</string>
+    <string name="settings_ua">User-Agent</string>
+    <string name="ua_custom_title">自定义 User-Agent</string>
+    <string name="ua_custom_hint">保存后立即生效并刷新已打开页面；留空则回退默认</string>
+    <string name="entry_adblock">广告拦截</string>
+    <string name="entry_proxy">代理</string>
+    <string name="entry_developer">开发者</string>
+    <string name="entry_privacy">隐私</string>
+    <string name="adblock_off_status">已关闭 · %1$d 条规则</string>
+    <string name="adblock_updating">正在更新…</string>
+    <string name="adblock_update_failed">更新失败：%1$s（点击重试）</string>
+    <string name="adblock_rules_updated">%1$d 条规则 · %2$s 更新</string>
+    <string name="adblock_rules_builtin">%1$d 条规则 · 内置版本（点击在线更新）</string>
+    <string name="proxy_status_auto">自动切换（出口：%1$s，%2$s）</string>
+    <string name="proxy_status_fixed">固定：%1$s</string>
+    <string name="proxy_outlet_unset">（未设出口）</string>
+    <string name="proxy_default_direct">未命中直连</string>
+    <string name="proxy_default_proxy">未命中走代理</string>
+    <string name="developer_summary">页面内工具 / 远程调试</string>
+    <string name="developer_remote_on">远程调试</string>
+    <string name="privacy_summary">清理浏览数据 / 按站点清理</string>
+
+    <!-- 设置：广告拦截 -->
+    <string name="adblock_switch">拦截广告</string>
+    <string name="adblock_switch_desc">基于 EasyList + EasyList China，拦截请求并隐藏页面广告元素</string>
+    <string name="adblock_update">更新广告规则</string>
+    <string name="adblock_allowlist">站点白名单</string>
+    <string name="adblock_allowlist_empty">无（全部站点生效）</string>
+    <string name="adblock_allowlist_count">%1$d 个站点不拦截</string>
+    <string name="adblock_allowlist_hint">白名单为空，广告拦截在所有站点生效。\n浏览器菜单里可对当前站点单独关闭。</string>
+
+    <!-- 设置：代理 -->
+    <string name="proxy_current_mode">当前模式</string>
+    <string name="proxy_outlets">代理出口</string>
+    <string name="proxy_not_added">未添加</string>
+    <string name="proxy_rules_count">%1$d 条（直连 %2$d · 代理 %3$d）</string>
+    <string name="proxy_import_entry">导入规则列表</string>
+    <string name="proxy_import_entry_desc">粘贴文本或填 URL 下载，支持 AutoProxy / gfwlist 格式</string>
+    <string name="proxy_mode_title">代理模式</string>
+    <string name="proxy_mode_fixed_route">固定走 %1$s</string>
+    <string name="proxy_mode_auto_rules">自动切换（按规则）</string>
+    <string name="proxy_default_outlet_hint">默认出口（多出口时按规则分流的基础）：</string>
+    <string name="proxy_unmatched_label">未命中规则的域名：</string>
+    <string name="proxy_unmatched_proxy">走代理（直连规则转 bypass，SwitchyOmega 习惯）</string>
+    <string name="proxy_unmatched_direct">直连（代理规则按站点生效，AutoProxy / gfwlist 习惯）</string>
+    <string name="proxy_no_outlet_hint">还没有代理出口，先到「代理出口」添加</string>
+    <string name="proxy_add_outlet">添加代理出口</string>
+    <string name="field_name">名称</string>
+    <string name="field_host">主机</string>
+    <string name="field_port">端口</string>
+    <string name="proxy_add_rule">添加规则</string>
+    <string name="proxy_rules_title">自动切换规则</string>
+    <string name="proxy_rules_hint">直连规则的域名不走代理；代理规则的域名走代理（配合「未命中直连」时）</string>
+    <string name="proxy_rule_pattern_label">域名，如 baidu.com 或 *.google.com</string>
+    <string name="proxy_import_no_rules">没有解析到有效规则</string>
+    <string name="proxy_import_paste_hint">粘贴规则文本（AutoProxy / gfwlist 格式）</string>
+    <string name="proxy_import_url_hint">或规则列表 URL</string>
+    <string name="proxy_import_download_failed">下载失败：%1$s</string>
+    <string name="import_append">追加</string>
+    <string name="import_replace">替换现有</string>
+    <string name="proxy_import_default_hint">导入 AutoProxy / gfwlist 后建议「未命中直连」：列表里的域名走代理，其余直连。</string>
+    <string name="parse_preview">解析预览</string>
+    <string name="proxy_import_parsed">解析到 %1$d 条规则（直连 %2$d · 代理 %3$d）%4$s</string>
+    <string name="proxy_import_skipped">，跳过 %1$d 条不支持的规则</string>
+    <string name="proxy_import_will_clear">将清空现有 %1$d 条规则</string>
+
+    <!-- 设置：开发者 -->
+    <string name="dev_remote_title">远程调试（chrome://inspect / CDP）</string>
+    <string name="dev_remote_desc">默认关闭。开启后电脑经 adb 可用完整 Chrome DevTools 检查页面；也可用命令行开关：am start --ez remote_debug true</string>
+    <string name="dev_eruda_title">页面内开发者工具（eruda）</string>
+    <string name="dev_eruda_desc">手机上直接查看 Console / Elements / Network / Storage；也可用命令行开关：am start --ez dev_tools true</string>
+
+    <!-- 设置：隐私 -->
+    <string name="privacy_clear_all">清理浏览数据</string>
+    <string name="privacy_clear_all_desc">Cookie / 站点存储 / 缓存 / 历史 / 密码（全部）</string>
+    <string name="privacy_clear_site">按站点清理</string>
+    <string name="privacy_clear_site_desc">清除指定站点的存储 / Cookie / 密码</string>
+    <string name="field_site_domain">站点域名</string>
+    <string name="clear_data_storage">站点存储（localStorage 等）</string>
+    <string name="clear_data_passwords">已保存密码</string>
+    <string name="clear_data_history_site">浏览历史（该站点）</string>
+    <string name="clear_data_cache">缓存</string>
+    <string name="clear_data_form">表单数据</string>
+    <string name="clear_data_history">浏览历史</string>
 </resources>

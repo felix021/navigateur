@@ -1,6 +1,7 @@
 package com.felix021.navigateur.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,9 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
+import com.felix021.navigateur.R
+import com.felix021.navigateur.data.AdBlockStatus
 import com.felix021.navigateur.data.BrowserSettings
 import com.felix021.navigateur.data.ProxyRepository
+import com.felix021.navigateur.data.ProxySettings
 import com.felix021.navigateur.data.SearchEngines
 import com.felix021.navigateur.data.ThemeMode
 import com.felix021.navigateur.data.UaPresets
@@ -41,24 +47,35 @@ import com.felix021.navigateur.ui.component.TextInputDialog
 import com.felix021.navigateur.util.UrlUtils
 
 private val THEME_LABELS = mapOf(
-    ThemeMode.FOLLOW_SYSTEM to "跟随系统",
-    ThemeMode.LIGHT to "亮色",
-    ThemeMode.DARK to "暗色",
+    ThemeMode.FOLLOW_SYSTEM to R.string.follow_system,
+    ThemeMode.LIGHT to R.string.theme_light,
+    ThemeMode.DARK to R.string.theme_dark,
 )
 
 private val FONT_OPTIONS = listOf(
-    "" to "默认（跟随网站）",
-    "sans-serif" to "无衬线",
-    "serif" to "衬线",
-    "monospace" to "等宽",
+    "" to R.string.font_default,
+    "sans-serif" to R.string.font_sans,
+    "serif" to R.string.font_serif,
+    "monospace" to R.string.font_monospace,
+)
+
+/** 界面语言：tag 为 BCP-47 语言标签（"" = 跟随系统）；nativeName 是各语言自称，不随界面翻译 */
+private data class LangOption(val tag: String, val nativeName: String?)
+
+private val LANGUAGES = listOf(
+    LangOption("", null),
+    LangOption("zh", "中文"),
+    LangOption("en", "English"),
+    LangOption("fr", "Français"),
+    LangOption("ja", "日本語"),
+    LangOption("ru", "Русский"),
+    LangOption("de", "Deutsch"),
+    LangOption("es", "Español"),
 )
 
 /** 二级设置页 */
-private enum class SubPage(val title: String) {
-    AdBlock("广告拦截"),
-    Proxy("代理"),
-    Developer("开发者"),
-    Privacy("隐私"),
+internal enum class SubPage {
+    AdBlock, Proxy, Developer, Privacy,
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -81,6 +98,7 @@ fun SettingsScreen(controller: BrowserController) {
 
     var showHome by remember { mutableStateOf(false) }
     var showEngine by remember { mutableStateOf(false) }
+    var showLanguage by remember { mutableStateOf(false) }
     var showTheme by remember { mutableStateOf(false) }
     var showFont by remember { mutableStateOf(false) }
     var showUa by remember { mutableStateOf(false) }
@@ -92,13 +110,20 @@ fun SettingsScreen(controller: BrowserController) {
     val update: ((BrowserSettings) -> BrowserSettings) -> Unit =
         { controller.container.settings.update(it) }
 
+    // 当前语言：empty = 跟随系统；取主语言与选项表对齐（zh-CN → zh）
+    val appliedLocales = AppCompatDelegate.getApplicationLocales()
+    val currentLang = LANGUAGES.firstOrNull {
+        it.tag.isNotEmpty() && appliedLocales.takeIf { l -> !l.isEmpty }
+            ?.get(0)?.language == it.tag
+    } ?: LANGUAGES[0]
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("设置") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = { controller.screen.value = Screen.Browser }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -110,29 +135,34 @@ fun SettingsScreen(controller: BrowserController) {
                 .padding(pad)
                 .verticalScroll(rememberScrollState()),
         ) {
-            SectionHeader("常规")
+            SectionHeader(stringResource(R.string.section_general))
             SettingItem(
-                title = "主页",
-                value = if (UrlUtils.isHome(settings.homepage)) "内置起始页" else settings.homepage,
+                title = stringResource(R.string.settings_homepage),
+                value = if (UrlUtils.isHome(settings.homepage)) stringResource(R.string.homepage_builtin)
+                else settings.homepage,
             ) { showHome = true }
             SettingItem(
-                title = "搜索引擎",
-                value = SearchEngines.byId(settings.searchEngineId).name,
+                title = stringResource(R.string.settings_search_engine),
+                value = SearchEngines.byId(settings.searchEngineId).nameText(),
             ) { showEngine = true }
+            SettingItem(
+                title = stringResource(R.string.settings_language),
+                value = currentLang.nativeName ?: stringResource(R.string.follow_system),
+            ) { showLanguage = true }
             SwitchItem(
-                title = "记录密码",
+                title = stringResource(R.string.settings_save_passwords),
                 checked = settings.savePasswords,
                 onChange = { enabled -> update { it.copy(savePasswords = enabled) } },
             )
 
-            SectionHeader("显示")
+            SectionHeader(stringResource(R.string.section_display))
             SettingItem(
-                title = "主题",
-                value = THEME_LABELS[settings.themeMode].orEmpty(),
+                title = stringResource(R.string.settings_theme),
+                value = stringResource(THEME_LABELS[settings.themeMode] ?: R.string.follow_system),
             ) { showTheme = true }
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("页面缩放", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.settings_zoom), style = MaterialTheme.typography.bodyLarge)
                     Spacer(Modifier.weight(1f))
                     Text(
                         "${settings.pageZoomPercent}%",
@@ -146,58 +176,60 @@ fun SettingsScreen(controller: BrowserController) {
                 )
             }
             SettingItem(
-                title = "字体",
-                value = FONT_OPTIONS.firstOrNull { it.first == settings.fontFamily }?.second.orEmpty(),
+                title = stringResource(R.string.settings_font),
+                value = FONT_OPTIONS.firstOrNull { it.first == settings.fontFamily }
+                    ?.let { stringResource(it.second) }.orEmpty(),
             ) { showFont = true }
             SettingItem(
-                title = "横屏工具栏位置",
-                value = if (settings.landscapeToolbarSide == "left") "左手边" else "右手边",
+                title = stringResource(R.string.settings_landscape_side),
+                value = if (settings.landscapeToolbarSide == "left") stringResource(R.string.landscape_left)
+                else stringResource(R.string.landscape_right),
             ) { showLandSide = true }
             SwitchItem(
-                title = "横屏全屏",
-                subtitle = "横屏时隐藏系统状态栏，充分利用屏幕高度",
+                title = stringResource(R.string.settings_landscape_fullscreen),
+                subtitle = stringResource(R.string.landscape_fullscreen_desc),
                 checked = settings.landscapeFullscreen,
                 onChange = { enabled -> update { it.copy(landscapeFullscreen = enabled) } },
             )
             SwitchItem(
-                title = "横屏底部安全区",
-                subtitle = "显示系统手势条并避让；关闭则完全全屏（自绘状态信息仍在）",
+                title = stringResource(R.string.settings_landscape_safe_area),
+                subtitle = stringResource(R.string.landscape_safe_area_desc),
                 checked = settings.landscapeBottomSafeArea,
                 onChange = { enabled -> update { it.copy(landscapeBottomSafeArea = enabled) } },
             )
 
-            SectionHeader("网站")
+            SectionHeader(stringResource(R.string.section_website))
             SwitchItem(
-                title = "默认桌面模式",
-                subtitle = "新标签页默认以桌面 UA 打开（UA 预设为默认时生效）",
+                title = stringResource(R.string.settings_desktop_default),
+                subtitle = stringResource(R.string.desktop_default_desc),
                 checked = settings.desktopModeDefault,
                 onChange = { enabled -> update { it.copy(desktopModeDefault = enabled) } },
             )
             SettingItem(
-                title = "User-Agent",
+                title = stringResource(R.string.settings_ua),
                 value = uaDisplay(settings),
             ) { showUa = true }
 
-            SectionHeader("更多")
+            SectionHeader(stringResource(R.string.section_more))
             SettingItem(
-                title = "广告拦截",
+                title = stringResource(R.string.entry_adblock),
                 value = if (settings.adBlockEnabled) adRulesLabel(adStatus)
-                else "已关闭 · ${adStatus.ruleCount} 条规则",
+                else stringResource(R.string.adblock_off_status, adStatus.ruleCount),
             ) { sub = SubPage.AdBlock }
             SettingItem(
-                title = "代理",
+                title = stringResource(R.string.entry_proxy),
                 value = proxyModeLabel(proxy),
             ) { sub = SubPage.Proxy }
             SettingItem(
-                title = "开发者",
+                title = stringResource(R.string.entry_developer),
                 value = if (settings.devTools || settings.remoteDebug) buildList {
                     if (settings.devTools) add("eruda")
-                    if (settings.remoteDebug) add("远程调试")
-                }.joinToString(" / ") else "页面内工具 / 远程调试",
+                    if (settings.remoteDebug) add(stringResource(R.string.developer_remote_on))
+                }.joinToString(" / ") else stringResource(R.string.developer_summary),
             ) { sub = SubPage.Developer }
             SettingItem(
-                title = "隐私",
-                value = "清理浏览数据 / 按站点清理",
+                title = stringResource(R.string.entry_privacy),
+                value = stringResource(R.string.privacy_summary),
             ) { sub = SubPage.Privacy }
 
             Spacer(Modifier.height(32.dp))
@@ -206,10 +238,10 @@ fun SettingsScreen(controller: BrowserController) {
 
     if (showHome) {
         TextInputDialog(
-            title = "主页",
+            title = stringResource(R.string.settings_homepage),
             initial = settings.homepage,
-            label = "网址",
-            supportingText = "填 about:home 使用内置起始页；否则新标签页直接加载该网址",
+            label = stringResource(R.string.field_url),
+            supportingText = stringResource(R.string.homepage_hint),
             onDismiss = { showHome = false },
             onOk = { v ->
                 update { it.copy(homepage = v.ifBlank { UrlUtils.HOME }) }
@@ -219,10 +251,10 @@ fun SettingsScreen(controller: BrowserController) {
     }
     if (showEngine) {
         SingleChoiceDialog(
-            title = "搜索引擎",
+            title = stringResource(R.string.settings_search_engine),
             options = SearchEngines.ALL,
             selected = SearchEngines.byId(settings.searchEngineId),
-            label = { it.name },
+            label = { it.nameText() },
             onDismiss = { showEngine = false },
             onSelect = {
                 update { s -> s.copy(searchEngineId = it.id) }
@@ -230,12 +262,28 @@ fun SettingsScreen(controller: BrowserController) {
             },
         )
     }
+    if (showLanguage) {
+        SingleChoiceDialog(
+            title = stringResource(R.string.settings_language),
+            options = LANGUAGES,
+            selected = currentLang,
+            label = { it.nativeName ?: stringResource(R.string.follow_system) },
+            onDismiss = { showLanguage = false },
+            onSelect = { opt ->
+                AppCompatDelegate.setApplicationLocales(
+                    if (opt.tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
+                    else LocaleListCompat.forLanguageTags(opt.tag),
+                )
+                showLanguage = false
+            },
+        )
+    }
     if (showTheme) {
         SingleChoiceDialog(
-            title = "主题",
+            title = stringResource(R.string.settings_theme),
             options = ThemeMode.entries.toList(),
             selected = settings.themeMode,
-            label = { THEME_LABELS[it].orEmpty() },
+            label = { stringResource(THEME_LABELS[it] ?: R.string.follow_system) },
             onDismiss = { showTheme = false },
             onSelect = {
                 update { s -> s.copy(themeMode = it) }
@@ -245,10 +293,10 @@ fun SettingsScreen(controller: BrowserController) {
     }
     if (showFont) {
         SingleChoiceDialog(
-            title = "字体",
+            title = stringResource(R.string.settings_font),
             options = FONT_OPTIONS,
             selected = FONT_OPTIONS.firstOrNull { it.first == settings.fontFamily },
-            label = { it.second },
+            label = { stringResource(it.second) },
             onDismiss = { showFont = false },
             onSelect = {
                 update { s -> s.copy(fontFamily = it.first) }
@@ -258,10 +306,10 @@ fun SettingsScreen(controller: BrowserController) {
     }
     if (showLandSide) {
         SingleChoiceDialog(
-            title = "横屏工具栏位置",
+            title = stringResource(R.string.settings_landscape_side),
             options = listOf("left", "right"),
             selected = settings.landscapeToolbarSide,
-            label = { if (it == "left") "左手边" else "右手边" },
+            label = { if (it == "left") stringResource(R.string.landscape_left) else stringResource(R.string.landscape_right) },
             onDismiss = { showLandSide = false },
             onSelect = {
                 update { s -> s.copy(landscapeToolbarSide = it) }
@@ -271,10 +319,10 @@ fun SettingsScreen(controller: BrowserController) {
     }
     if (showUa) {
         SingleChoiceDialog(
-            title = "User-Agent",
+            title = stringResource(R.string.settings_ua),
             options = UaPresets.ALL,
             selected = UaPresets.byId(settings.uaPresetId),
-            label = { it.label },
+            label = { it.labelText() },
             onDismiss = { showUa = false },
             onSelect = {
                 showUa = false
@@ -288,10 +336,10 @@ fun SettingsScreen(controller: BrowserController) {
     }
     if (showUaCustom) {
         TextInputDialog(
-            title = "自定义 User-Agent",
+            title = stringResource(R.string.ua_custom_title),
             initial = settings.customUserAgent,
-            label = "UA 字符串",
-            supportingText = "保存后立即生效并刷新已打开页面；留空则回退默认",
+            label = stringResource(R.string.settings_ua),
+            supportingText = stringResource(R.string.ua_custom_hint),
             onDismiss = { showUaCustom = false },
             onOk = { v ->
                 update { it.copy(uaPresetId = UaPresets.CUSTOM, customUserAgent = v) }
@@ -311,7 +359,7 @@ internal fun SubPageScaffold(title: String, onBack: () -> Unit, content: @Compos
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -319,31 +367,38 @@ internal fun SubPageScaffold(title: String, onBack: () -> Unit, content: @Compos
     ) { pad -> content(pad) }
 }
 
+@Composable
 internal fun uaDisplay(s: BrowserSettings): String {
     val preset = UaPresets.byId(s.uaPresetId)
     return if (preset.id == UaPresets.CUSTOM) {
-        s.customUserAgent.ifBlank { "默认（本机）" }
+        s.customUserAgent.ifBlank { stringResource(R.string.ua_default) }
     } else {
-        preset.label
+        preset.labelText()
     }
 }
 
-internal fun adRulesLabel(s: com.felix021.navigateur.data.AdBlockStatus): String = when {
-    s.updating -> "正在更新…"
-    s.lastError != null -> "更新失败：${s.lastError}（点击重试）"
+@Composable
+internal fun adRulesLabel(s: AdBlockStatus): String = when {
+    s.updating -> stringResource(R.string.adblock_updating)
+    s.lastError != null -> stringResource(R.string.adblock_update_failed, s.lastError)
     s.updatedAt > 0 -> {
-        val d = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.CHINA).format(java.util.Date(s.updatedAt))
-        "${s.ruleCount} 条规则 · $d 更新"
+        val d = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
+            .format(java.util.Date(s.updatedAt))
+        stringResource(R.string.adblock_rules_updated, s.ruleCount, d)
     }
-    else -> "${s.ruleCount} 条规则 · 内置版本（点击在线更新）"
+    else -> stringResource(R.string.adblock_rules_builtin, s.ruleCount)
 }
 
-internal fun proxyModeLabel(p: com.felix021.navigateur.data.ProxySettings): String = when (p.mode) {
-    "direct" -> "直连"
+@Composable
+internal fun proxyModeLabel(p: ProxySettings): String = when (p.mode) {
+    "direct" -> stringResource(R.string.label_direct)
     "auto" -> {
-        val name = p.profiles.firstOrNull { it.id == p.autoProfileId }?.name ?: "（未设出口）"
-        val def = if (p.autoDefault == "direct") "未命中直连" else "未命中走代理"
-        "自动切换（出口：$name，$def）"
+        val name = p.profiles.firstOrNull { it.id == p.autoProfileId }?.name
+            ?: stringResource(R.string.proxy_outlet_unset)
+        val def = if (p.autoDefault == "direct") stringResource(R.string.proxy_default_direct)
+        else stringResource(R.string.proxy_default_proxy)
+        stringResource(R.string.proxy_status_auto, name, def)
     }
-    else -> p.profiles.firstOrNull { it.id == p.mode }?.let { "固定：${it.name}" } ?: "直连"
+    else -> p.profiles.firstOrNull { it.id == p.mode }?.let { stringResource(R.string.proxy_status_fixed, it.name) }
+        ?: stringResource(R.string.label_direct)
 }

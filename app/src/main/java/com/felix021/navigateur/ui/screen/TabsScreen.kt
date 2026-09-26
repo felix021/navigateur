@@ -37,6 +37,8 @@ import com.felix021.navigateur.browser.TabState
 import com.felix021.navigateur.ui.BrowserController
 import com.felix021.navigateur.ui.Screen
 import com.felix021.navigateur.util.UrlUtils
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -47,10 +49,10 @@ fun TabsScreen(controller: BrowserController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("标签（${tabs.size}）") },
+                title = { Text(stringResource(R.string.tabs_count, tabs.size)) },
                 navigationIcon = {
                     IconButton(onClick = { controller.screen.value = Screen.Browser }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -58,7 +60,7 @@ fun TabsScreen(controller: BrowserController) {
                         controller.tabManager.newTab()
                         controller.screen.value = Screen.Browser
                     }) {
-                        Icon(Icons.Filled.Add, contentDescription = "新建标签")
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.tab_new))
                     }
                 },
             )
@@ -117,7 +119,7 @@ private fun TabCard(tab: TabState, isCurrent: Boolean, onClick: () -> Unit, onCl
                 onClick = onClose,
                 modifier = Modifier.align(Alignment.TopEnd).size(32.dp),
             ) {
-                Icon(Icons.Filled.Close, contentDescription = "关闭", modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close), modifier = Modifier.size(16.dp))
             }
         }
     }

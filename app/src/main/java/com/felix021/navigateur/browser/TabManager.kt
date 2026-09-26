@@ -20,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.felix021.navigateur.R
 
 /**
  * 多标签管理：每个标签一个 WebView 实例，仅当前标签 attach 到视图树。
@@ -128,7 +129,7 @@ class TabManager(
         val state = TabState(
             id = id,
             url = url,
-            title = if (UrlUtils.isHome(url)) "起始页" else "",
+            title = if (UrlUtils.isHome(url)) context.getString(R.string.new_tab_title) else "",
             desktopMode = container.settings.current.desktopModeDefault,
         )
         _tabs.value = _tabs.value + state
@@ -291,7 +292,7 @@ class TabManager(
         wv?.loadUrl("about:blank")
         wv?.clearHistory()
         updateState(id) {
-            it.copy(url = UrlUtils.HOME, title = "起始页", loading = false, progress = 100, error = null)
+            it.copy(url = UrlUtils.HOME, title = context.getString(R.string.new_tab_title), loading = false, progress = 100, error = null)
         }
         syncWebView()
         refreshNav()
@@ -491,7 +492,7 @@ class TabManager(
             TabState(
                 id = UUID.randomUUID().toString(),
                 url = it.url,
-                title = if (UrlUtils.isHome(it.url)) "起始页" else it.title,
+                title = if (UrlUtils.isHome(it.url)) context.getString(R.string.new_tab_title) else it.title,
                 desktopMode = it.desktopMode,
             )
         }

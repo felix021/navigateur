@@ -14,7 +14,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.felix021.navigateur.data.SearchEngine
+import com.felix021.navigateur.data.UaPreset
+
+/** 内置 UA 预设显示名（有资源走资源，自定义预设用原文） */
+@Composable
+internal fun UaPreset.labelText(): String = labelRes?.let { stringResource(it) } ?: label
+
+/** 搜索引擎显示名（品牌名不翻译） */
+@Composable
+internal fun SearchEngine.nameText(): String = nameRes?.let { stringResource(it) } ?: name
 
 /** 设置项分组标题 */
 @Composable

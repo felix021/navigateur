@@ -73,6 +73,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isFinishing) controller.tabManager.destroyAll()
+        // 语言切换等配置变化也会重建 Activity（isFinishing=false），旧 WebView 必须释放，
+        // 否则持有已销毁 Activity context 泄漏；标签会话由 TabSessionStore 恢复
+        controller.tabManager.destroyAll()
     }
 }

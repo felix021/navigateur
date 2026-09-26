@@ -41,6 +41,8 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 data class StatusInfo(
     val time: String,
@@ -132,7 +134,7 @@ fun StatusStripVertical(
                 info.cellular -> Icons.Filled.SignalCellular4Bar
                 else -> Icons.Filled.CloudOff
             },
-            contentDescription = "网络",
+            contentDescription = stringResource(R.string.status_network),
             tint = fgColor,
             modifier = Modifier.size(14.dp),
         )
@@ -163,7 +165,7 @@ fun StatusStripTop(
                     info.cellular -> Icons.Filled.SignalCellular4Bar
                     else -> Icons.Filled.CloudOff
                 },
-                contentDescription = "网络",
+                contentDescription = stringResource(R.string.status_network),
                 tint = fgColor,
                 modifier = Modifier.size(12.dp),
             )
@@ -171,7 +173,7 @@ fun StatusStripTop(
             if (info.charging) {
                 Icon(
                     Icons.Filled.Bolt,
-                    contentDescription = "充电中",
+                    contentDescription = stringResource(R.string.status_charging),
                     tint = fgColor,
                     modifier = Modifier.size(12.dp),
                 )

@@ -9,6 +9,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.felix021.navigateur.util.UrlUtils
+import com.felix021.navigateur.R
 
 class BrowserWebViewClient(
     private val tm: TabManager,
@@ -98,7 +99,8 @@ class BrowserWebViewClient(
         error: WebResourceError,
     ) {
         if (!request.isForMainFrame) return
-        val desc = error.description?.toString().orEmpty().ifEmpty { "网络错误" }
+        val desc = error.description?.toString().orEmpty()
+            .ifEmpty { tm.context.getString(R.string.network_error) }
         tm.updateState(tabId) { it.copy(loading = false, error = desc) }
     }
 

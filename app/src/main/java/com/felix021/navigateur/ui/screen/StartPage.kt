@@ -38,6 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.data.Bookmark
 import com.felix021.navigateur.ui.BrowserController
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 /** 内置起始页：搜索框 + 收藏夹宫格 */
 @Composable
@@ -56,7 +58,7 @@ fun StartPage(controller: BrowserController, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(24.dp))
         if (bookmarks.isEmpty()) {
             Text(
-                "还没有收藏：点底栏星标可收藏当前页面",
+                stringResource(R.string.start_no_bookmarks),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
@@ -81,7 +83,7 @@ private fun SearchField(onSubmit: (String) -> Unit) {
         value = value,
         onValueChange = { value = it },
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("搜索或输入网址") },
+        placeholder = { Text(stringResource(R.string.search_or_url)) },
         singleLine = true,
         leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),

@@ -6,6 +6,7 @@ import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.appcompat.app.AlertDialog
+import com.felix021.navigateur.R
 
 class BrowserChromeClient(
     private val tm: TabManager,
@@ -29,7 +30,7 @@ class BrowserChromeClient(
     override fun onJsAlert(view: WebView, url: String, message: String?, result: JsResult): Boolean {
         AlertDialog.Builder(tm.context)
             .setMessage(message.orEmpty())
-            .setPositiveButton("确定") { _, _ -> result.confirm() }
+            .setPositiveButton(tm.context.getString(R.string.ok)) { _, _ -> result.confirm() }
             .setOnCancelListener { result.cancel() }
             .show()
         return true
@@ -38,8 +39,8 @@ class BrowserChromeClient(
     override fun onJsConfirm(view: WebView, url: String, message: String?, result: JsResult): Boolean {
         AlertDialog.Builder(tm.context)
             .setMessage(message.orEmpty())
-            .setPositiveButton("确定") { _, _ -> result.confirm() }
-            .setNegativeButton("取消") { _, _ -> result.cancel() }
+            .setPositiveButton(tm.context.getString(R.string.ok)) { _, _ -> result.confirm() }
+            .setNegativeButton(tm.context.getString(R.string.cancel)) { _, _ -> result.cancel() }
             .setOnCancelListener { result.cancel() }
             .show()
         return true

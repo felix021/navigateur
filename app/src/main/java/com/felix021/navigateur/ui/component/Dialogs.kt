@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.data.Bookmark
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 /** 添加 / 编辑书签 */
 @Composable
@@ -37,28 +39,28 @@ fun BookmarkDialog(
     var url by remember { mutableStateOf(initial?.url.orEmpty()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (initial == null) "添加书签" else "编辑书签") },
+        title = { Text(if (initial == null) stringResource(R.string.bookmark_add) else stringResource(R.string.bookmark_edit)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("标题") },
+                    label = { Text(stringResource(R.string.field_title)) },
                     singleLine = true,
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
-                    label = { Text("网址") },
+                    label = { Text(stringResource(R.string.field_url)) },
                     singleLine = true,
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (url.isNotBlank()) onOk(title, url) }) { Text("保存") }
+            TextButton(onClick = { if (url.isNotBlank()) onOk(title, url) }) { Text(stringResource(R.string.save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -95,9 +97,9 @@ fun TextInputDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onOk(value.trim()) }) { Text("确定") }
+            TextButton(onClick = { onOk(value.trim()) }) { Text(stringResource(R.string.ok)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -107,7 +109,8 @@ fun <T> SingleChoiceDialog(
     title: String,
     options: List<T>,
     selected: T?,
-    label: (T) -> String,
+    // 标签渲染需要 stringResource，故为 Composable lambda
+    label: @Composable (T) -> String,
     onDismiss: () -> Unit,
     onSelect: (T) -> Unit,
 ) {
@@ -133,7 +136,7 @@ fun <T> SingleChoiceDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
 }

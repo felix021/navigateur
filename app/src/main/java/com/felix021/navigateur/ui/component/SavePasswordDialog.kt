@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.ui.BrowserController
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 @Composable
 fun SavePasswordDialog(
@@ -20,25 +22,25 @@ fun SavePasswordDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("保存密码？") },
+        title = { Text(stringResource(R.string.save_password_title)) },
         text = {
             Column {
-                Text("网站：${prompt.host}")
+                Text(stringResource(R.string.save_password_site, prompt.host))
                 Spacer(Modifier.height(4.dp))
-                Text("账号：${prompt.username}")
+                Text(stringResource(R.string.save_password_account, prompt.username))
                 Spacer(Modifier.height(4.dp))
-                Text("密码：••••••••")
+                Text(stringResource(R.string.save_password_password))
                 prompt.replacing?.let {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "将替换该站点已保存的账号 $it",
+                        stringResource(R.string.save_password_replacing, it),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("保存") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("不保存") } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.save_password_no)) } },
     )
 }

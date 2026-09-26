@@ -30,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.ui.BrowserController
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 /** 广告拦截二级页：开关 / 更新规则 / 站点白名单 */
 @Composable
@@ -38,26 +40,26 @@ internal fun AdBlockSettingsPage(controller: BrowserController, onBack: () -> Un
     val adStatus by controller.container.adBlock.status.collectAsState()
     var showAllow by remember { mutableStateOf(false) }
 
-    SubPageScaffold("广告拦截", onBack) { pad ->
+    SubPageScaffold(stringResource(R.string.entry_adblock), onBack) { pad ->
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
         ) {
             SwitchItem(
-                title = "拦截广告",
-                subtitle = "基于 EasyList + EasyList China，拦截请求并隐藏页面广告元素",
+                title = stringResource(R.string.adblock_switch),
+                subtitle = stringResource(R.string.adblock_switch_desc),
                 checked = settings.adBlockEnabled,
                 onChange = { enabled ->
                     controller.container.settings.update { it.copy(adBlockEnabled = enabled) }
                 },
             )
             SettingItem(
-                title = "更新广告规则",
+                title = stringResource(R.string.adblock_update),
                 value = adRulesLabel(adStatus),
             ) { controller.container.adBlock.update() }
             SettingItem(
-                title = "站点白名单",
-                value = if (settings.adBlockAllowlist.isEmpty()) "无（全部站点生效）"
-                else "${settings.adBlockAllowlist.size} 个站点不拦截",
+                title = stringResource(R.string.adblock_allowlist),
+                value = if (settings.adBlockAllowlist.isEmpty()) stringResource(R.string.adblock_allowlist_empty)
+                else stringResource(R.string.adblock_allowlist_count, settings.adBlockAllowlist.size),
             ) { showAllow = true }
             Spacer(Modifier.height(32.dp))
         }
@@ -83,12 +85,12 @@ private fun AdAllowlistDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("站点白名单") },
+        title = { Text(stringResource(R.string.adblock_allowlist)) },
         text = {
             Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState())) {
                 if (hosts.isEmpty()) {
                     Text(
-                        "白名单为空，广告拦截在所有站点生效。\n浏览器菜单里可对当前站点单独关闭。",
+                        stringResource(R.string.adblock_allowlist_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -100,12 +102,12 @@ private fun AdAllowlistDialog(
                     ) {
                         Text(h, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         IconButton(onClick = { onRemove(h) }) {
-                            Icon(Icons.Filled.Close, contentDescription = "移除", modifier = Modifier.size(18.dp))
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.remove), modifier = Modifier.size(18.dp))
                         }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("完成") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) } },
     )
 }

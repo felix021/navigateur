@@ -45,6 +45,8 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 /** 代理二级页：模式 / 出口 / 规则（含 AutoProxy list 导入） */
 @Composable
@@ -62,25 +64,28 @@ internal fun ProxySettingsPage(controller: BrowserController, onBack: () -> Unit
         }
     }
 
-    SubPageScaffold("代理", onBack) { pad ->
+    SubPageScaffold(stringResource(R.string.entry_proxy), onBack) { pad ->
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
         ) {
-            SettingItem(title = "当前模式", value = proxyModeLabel(proxy)) { showMode = true }
+            SettingItem(title = stringResource(R.string.proxy_current_mode), value = proxyModeLabel(proxy)) { showMode = true }
             SettingItem(
-                title = "代理出口",
-                value = if (proxy.profiles.isEmpty()) "未添加"
+                title = stringResource(R.string.proxy_outlets),
+                value = if (proxy.profiles.isEmpty()) stringResource(R.string.proxy_not_added)
                 else proxy.profiles.joinToString(" / ") { it.name },
             ) { showProfiles = true }
             SettingItem(
-                title = "自动切换规则",
-                value = if (proxy.rules.isEmpty()) "未添加"
-                else "${proxy.rules.size} 条（直连 ${proxy.rules.count { it.action == "direct" }} · " +
-                    "代理 ${proxy.rules.count { it.action == "proxy" }}）",
+                title = stringResource(R.string.proxy_rules_title),
+                value = if (proxy.rules.isEmpty()) stringResource(R.string.proxy_not_added)
+                else stringResource(
+                    R.string.proxy_rules_count, proxy.rules.size,
+                    proxy.rules.count { it.action == "direct" },
+                    proxy.rules.count { it.action == "proxy" },
+                ),
             ) { showRules = true }
             SettingItem(
-                title = "导入规则列表",
-                value = "粘贴文本或填 URL 下载，支持 AutoProxy / gfwlist 格式",
+                title = stringResource(R.string.proxy_import_entry),
+                value = stringResource(R.string.proxy_import_entry_desc),
             ) { showImport = true }
             Spacer(Modifier.height(32.dp))
         }
@@ -132,15 +137,15 @@ private fun ProxyModeDialog(
     onDismiss: () -> Unit,
 ) {
     val options = buildList {
-        add("direct" to "直连")
-        proxy.profiles.forEach { add(it.id to "固定走 ${it.name}") }
-        add("auto" to "自动切换（按规则）")
+        add("direct" to stringResource(R.string.label_direct))
+        proxy.profiles.forEach { add(it.id to stringResource(R.string.proxy_mode_fixed_route, it.name)) }
+        add("auto" to stringResource(R.string.proxy_mode_auto_rules))
     }
     var autoId by remember(proxy) { mutableStateOf(proxy.autoProfileId.ifEmpty { proxy.profiles.firstOrNull()?.id ?: "" }) }
     var autoDefault by remember(proxy) { mutableStateOf(proxy.autoDefault) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("代理模式") },
+        title = { Text(stringResource(R.string.proxy_mode_title)) },
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
                 options.forEach { (id, label) ->
@@ -157,7 +162,7 @@ private fun ProxyModeDialog(
                     }
                     if (id == "auto" && proxy.profiles.isNotEmpty()) {
                         Text(
-                            "默认出口（多出口时按规则分流的基础）：",
+                            stringResource(R.string.proxy_default_outlet_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 12.dp),
@@ -174,14 +179,14 @@ private fun ProxyModeDialog(
                             }
                         }
                         Text(
-                            "未命中规则的域名：",
+                            stringResource(R.string.proxy_unmatched_label),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 12.dp, top = 6.dp),
                         )
                         listOf(
-                            "proxy" to "走代理（直连规则转 bypass，SwitchyOmega 习惯）",
-                            "direct" to "直连（代理规则按站点生效，AutoProxy / gfwlist 习惯）",
+                            "proxy" to stringResource(R.string.proxy_unmatched_proxy),
+                            "direct" to stringResource(R.string.proxy_unmatched_direct),
                         ).forEach { (v, t) ->
                             Row(
                                 Modifier.fillMaxWidth().clickable { autoDefault = v }
@@ -197,7 +202,7 @@ private fun ProxyModeDialog(
                 }
                 if (proxy.profiles.isEmpty()) {
                     Text(
-                        "还没有代理出口，先到「代理出口」添加",
+                        stringResource(R.string.proxy_no_outlet_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
@@ -205,7 +210,7 @@ private fun ProxyModeDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -225,7 +230,7 @@ private fun ProxyProfilesDialog(
     var type by remember { mutableStateOf("HTTP") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (adding) "添加代理出口" else "代理出口") },
+        title = { Text(if (adding) stringResource(R.string.proxy_add_outlet) else stringResource(R.string.proxy_outlets)) },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                 if (!adding) {
@@ -243,13 +248,13 @@ private fun ProxyProfilesDialog(
                                 )
                             }
                             IconButton(onClick = { onSave(proxy.profiles.filterNot { it.id == pf.id }) }) {
-                                Icon(Icons.Filled.Close, contentDescription = "删除", modifier = Modifier.size(18.dp))
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(18.dp))
                             }
                         }
                     }
-                    TextButton(onClick = { adding = true }) { Text("＋ 添加") }
+                    TextButton(onClick = { adding = true }) { Text(stringResource(R.string.add_prefixed)) }
                 } else {
-                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("名称") }, singleLine = true)
+                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.field_name)) }, singleLine = true)
                     Spacer(Modifier.padding(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         listOf("HTTP", "SOCKS5").forEach { t ->
@@ -262,9 +267,9 @@ private fun ProxyProfilesDialog(
                             }
                         }
                     }
-                    OutlinedTextField(value = host, onValueChange = { host = it }, label = { Text("主机") }, singleLine = true)
+                    OutlinedTextField(value = host, onValueChange = { host = it }, label = { Text(stringResource(R.string.field_host)) }, singleLine = true)
                     Spacer(Modifier.padding(4.dp))
-                    OutlinedTextField(value = port, onValueChange = { port = it.filter { c -> c.isDigit() } }, label = { Text("端口") }, singleLine = true)
+                    OutlinedTextField(value = port, onValueChange = { port = it.filter { c -> c.isDigit() } }, label = { Text(stringResource(R.string.field_port)) }, singleLine = true)
                 }
             }
         },
@@ -283,13 +288,13 @@ private fun ProxyProfilesDialog(
                         )
                         adding = false; name = ""; host = ""; port = ""
                     },
-                ) { Text("保存") }
+                ) { Text(stringResource(R.string.save)) }
             } else {
-                TextButton(onClick = onDismiss) { Text("完成") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
             }
         },
         dismissButton = {
-            if (adding) TextButton(onClick = { adding = false }) { Text("返回") }
+            if (adding) TextButton(onClick = { adding = false }) { Text(stringResource(R.string.back)) }
         },
     )
 }
@@ -308,12 +313,12 @@ private fun ProxyRulesDialog(
     var direct by remember { mutableStateOf(true) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (adding) "添加规则" else "自动切换规则") },
+        title = { Text(if (adding) stringResource(R.string.proxy_add_rule) else stringResource(R.string.proxy_rules_title)) },
         text = {
             Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
                 if (!adding) {
                     Text(
-                        "直连规则的域名不走代理；代理规则的域名走代理（配合「未命中直连」时）",
+                        stringResource(R.string.proxy_rules_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -323,30 +328,30 @@ private fun ProxyRulesDialog(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "${if (r.action == "direct") "直连" else "代理"}  ${r.pattern}",
+                                "${stringResource(if (r.action == "direct") R.string.label_direct else R.string.label_proxy)}  ${r.pattern}",
                                 Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             IconButton(onClick = { onSave(proxy.rules.filterNot { it.pattern == r.pattern }) }) {
-                                Icon(Icons.Filled.Close, contentDescription = "删除", modifier = Modifier.size(18.dp))
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.delete), modifier = Modifier.size(18.dp))
                             }
                         }
                     }
-                    TextButton(onClick = { adding = true }) { Text("＋ 添加") }
+                    TextButton(onClick = { adding = true }) { Text(stringResource(R.string.add_prefixed)) }
                 } else {
                     OutlinedTextField(
                         value = pattern,
                         onValueChange = { pattern = it },
-                        label = { Text("域名，如 baidu.com 或 *.google.com") },
+                        label = { Text(stringResource(R.string.proxy_rule_pattern_label)) },
                         singleLine = true,
                     )
                     Spacer(Modifier.padding(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = direct, onClick = { direct = true })
-                        Text("直连", Modifier.clickable { direct = true })
+                        Text(stringResource(R.string.label_direct), Modifier.clickable { direct = true })
                         Spacer(Modifier.padding(8.dp))
                         RadioButton(selected = !direct, onClick = { direct = false })
-                        Text("走代理", Modifier.clickable { direct = false })
+                        Text(stringResource(R.string.label_via_proxy), Modifier.clickable { direct = false })
                     }
                 }
             }
@@ -362,13 +367,13 @@ private fun ProxyRulesDialog(
                         )
                         adding = false; pattern = ""
                     },
-                ) { Text("保存") }
+                ) { Text(stringResource(R.string.save)) }
             } else {
-                TextButton(onClick = onDismiss) { Text("完成") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
             }
         },
         dismissButton = {
-            if (adding) TextButton(onClick = { adding = false }) { Text("返回") }
+            if (adding) TextButton(onClick = { adding = false }) { Text(stringResource(R.string.back)) }
         },
     )
 }
@@ -398,7 +403,7 @@ private fun ProxyImportDialog(
     fun parse(content: String) {
         val r = ProxyRepository.parseRules(content)
         if (r.rules.isEmpty()) {
-            Toast.makeText(context, "没有解析到有效规则", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.proxy_import_no_rules), Toast.LENGTH_SHORT).show()
         } else {
             preview = r
         }
@@ -406,13 +411,13 @@ private fun ProxyImportDialog(
 
     AlertDialog(
         onDismissRequest = { if (!loading) onDismiss() },
-        title = { Text("导入规则列表") },
+        title = { Text(stringResource(R.string.proxy_import_entry)) },
         text = {
             Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it; preview = null },
-                    label = { Text("粘贴规则文本（AutoProxy / gfwlist 格式）") },
+                    label = { Text(stringResource(R.string.proxy_import_paste_hint)) },
                     minLines = 4,
                     maxLines = 8,
                     modifier = Modifier.fillMaxWidth(),
@@ -422,7 +427,7 @@ private fun ProxyImportDialog(
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it; preview = null },
-                        label = { Text("或规则列表 URL") },
+                        label = { Text(stringResource(R.string.proxy_import_url_hint)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                     )
@@ -448,51 +453,52 @@ private fun ProxyImportDialog(
                                     text = content
                                     parse(content)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "下载失败：${e.message}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, context.getString(R.string.proxy_import_download_failed, e.message), Toast.LENGTH_LONG).show()
                                 } finally {
                                     loading = false
                                 }
                             }
                         },
-                    ) { Text(if (loading) "下载中…" else "下载") }
+                    ) { Text(if (loading) stringResource(R.string.downloading) else stringResource(R.string.download)) }
                 }
                 Spacer(Modifier.padding(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = !replace, onClick = { replace = false })
-                    Text("追加", Modifier.clickable { replace = false })
+                    Text(stringResource(R.string.import_append), Modifier.clickable { replace = false })
                     Spacer(Modifier.padding(10.dp))
                     RadioButton(selected = replace, onClick = { replace = true })
-                    Text("替换现有", Modifier.clickable { replace = true })
+                    Text(stringResource(R.string.import_replace), Modifier.clickable { replace = true })
                 }
                 Text(
-                    "导入 AutoProxy / gfwlist 后建议「未命中直连」：列表里的域名走代理，其余直连。",
+                    stringResource(R.string.proxy_import_default_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = autoDefault == "direct", onClick = { autoDefault = "direct" })
-                    Text("未命中直连", Modifier.clickable { autoDefault = "direct" })
+                    Text(stringResource(R.string.proxy_default_direct), Modifier.clickable { autoDefault = "direct" })
                     Spacer(Modifier.padding(10.dp))
                     RadioButton(selected = autoDefault == "proxy", onClick = { autoDefault = "proxy" })
-                    Text("未命中走代理", Modifier.clickable { autoDefault = "proxy" })
+                    Text(stringResource(R.string.proxy_default_proxy), Modifier.clickable { autoDefault = "proxy" })
                 }
                 TextButton(
                     enabled = text.isNotBlank() && !loading,
                     onClick = { parse(text) },
-                ) { Text("解析预览") }
+                ) { Text(stringResource(R.string.parse_preview)) }
                 preview?.let { r ->
                     val directCount = r.rules.count { it.action == "direct" }
                     val proxyCount = r.rules.size - directCount
                     Text(
-                        "解析到 ${r.rules.size} 条规则" +
-                            "（直连 $directCount · 代理 $proxyCount）" +
-                            if (r.skipped > 0) "，跳过 ${r.skipped} 条不支持的规则" else "",
+                        stringResource(
+                            R.string.proxy_import_parsed, r.rules.size, directCount, proxyCount,
+                            if (r.skipped > 0) stringResource(R.string.proxy_import_skipped, r.skipped) else "",
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
                     if (replace) {
                         Text(
-                            "将清空现有 ${existing.size} 条规则",
+                            stringResource(R.string.proxy_import_will_clear, existing.size),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -515,8 +521,8 @@ private fun ProxyImportDialog(
                     }
                     onImport(merged, autoDefault)
                 },
-            ) { Text("导入") }
+            ) { Text(stringResource(R.string.import_action)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

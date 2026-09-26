@@ -6,6 +6,7 @@ import android.net.Uri
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.widget.Toast
+import com.felix021.navigateur.R
 
 /** 系统下载：走 DownloadManager，通知栏显示进度，默认落到公共下载目录 */
 object Downloader {
@@ -38,10 +39,10 @@ object Downloader {
             }
             val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             dm.enqueue(request)
-            Toast.makeText(context, "已开始下载", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             android.util.Log.w("NavigateurDL", "下载失败", e)
-            Toast.makeText(context, "无法下载：${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.download_failed, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 }

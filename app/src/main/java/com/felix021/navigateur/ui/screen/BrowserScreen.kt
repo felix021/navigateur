@@ -105,6 +105,8 @@ import com.felix021.navigateur.ui.component.StatusStripVertical
 import com.felix021.navigateur.ui.Screen
 import com.felix021.navigateur.util.UrlUtils
 import java.util.Date
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 @Composable
 fun BrowserScreen(controller: BrowserController) {
@@ -285,19 +287,19 @@ private fun LandscapeBrowser(
                                 val url = current?.url.orEmpty()
                                 if (url.isNotEmpty()) {
                                     clipboard.setText(AnnotatedString(url))
-                                    Toast.makeText(controller.activity, "已复制网址", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(controller.activity, controller.activity.getString(R.string.copied_url), Toast.LENGTH_SHORT).show()
                                 }
                             }) {
-                                Icon(Icons.Filled.ContentCopy, contentDescription = "复制网址")
+                                Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.cd_copy_url))
                             }
                             IconButton(
                                 enabled = current?.url?.startsWith("https://") == true,
                                 onClick = { certOpen = true },
                             ) {
-                                Icon(Icons.Filled.VerifiedUser, contentDescription = "证书")
+                                Icon(Icons.Filled.VerifiedUser, contentDescription = stringResource(R.string.cd_certificate))
                             }
                             IconButton(onClick = { urlPanelOpen = false }) {
-                                Icon(Icons.Filled.Close, contentDescription = "关闭")
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close))
                             }
                         }
                     }
@@ -388,16 +390,16 @@ private fun SideToolbar(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             IconButton(onClick = onOpenUrl) {
-                Icon(Icons.Filled.Language, contentDescription = "地址")
+                Icon(Icons.Filled.Language, contentDescription = stringResource(R.string.cd_address))
             }
             IconButton(enabled = nav.first, onClick = { controller.tabManager.goBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "后退")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             IconButton(enabled = nav.second, onClick = { controller.tabManager.goForward() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "前进")
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.cd_forward))
             }
             IconButton(onClick = { controller.tabManager.goHome() }) {
-                Icon(Icons.Filled.Home, contentDescription = "主页")
+                Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.cd_home))
             }
             IconButton(
                 enabled = current != null && !UrlUtils.isHome(current.url),
@@ -405,19 +407,19 @@ private fun SideToolbar(
             ) {
                 Icon(
                     Icons.Filled.Star,
-                    contentDescription = "收藏",
+                    contentDescription = stringResource(R.string.cd_bookmark),
                     tint = if (bookmarked) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             IconButton(onClick = { controller.screen.value = Screen.Tabs }) {
                 BadgedBox(badge = { Badge { Text(tabCount.toString()) } }) {
-                    Icon(Icons.Filled.Tab, contentDescription = "标签")
+                    Icon(Icons.Filled.Tab, contentDescription = stringResource(R.string.cd_tabs))
                 }
             }
             Box {
                 IconButton(onClick = { onMenuOpenChange(true) }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "菜单")
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.cd_menu))
                 }
                 BrowserMenuContent(
                     controller = controller,
@@ -477,7 +479,7 @@ private fun BrowserMenuContent(
     }
     DropdownMenu(expanded = menuOpen, onDismissRequest = onDismiss) {
         DropdownMenuItem(
-            text = { Text("新建标签") },
+            text = { Text(stringResource(R.string.tab_new)) },
             leadingIcon = { Icon(Icons.Filled.Add, null) },
             onClick = {
                 onDismiss()
@@ -485,7 +487,7 @@ private fun BrowserMenuContent(
             },
         )
         DropdownMenuItem(
-            text = { Text("刷新") },
+            text = { Text(stringResource(R.string.menu_reload)) },
             leadingIcon = { Icon(Icons.Filled.Refresh, null) },
             onClick = {
                 onDismiss()
@@ -493,7 +495,7 @@ private fun BrowserMenuContent(
             },
         )
         DropdownMenuItem(
-            text = { Text("桌面模式") },
+            text = { Text(stringResource(R.string.menu_desktop_mode)) },
             leadingIcon = { Icon(Icons.Filled.DesktopWindows, null) },
             trailingIcon = if (current?.desktopMode == true) {
                 { Icon(Icons.Filled.Check, null) }
@@ -504,7 +506,7 @@ private fun BrowserMenuContent(
             },
         )
         DropdownMenuItem(
-            text = { Text("页面缩放（${settings.pageZoomPercent}%）") },
+            text = { Text(stringResource(R.string.menu_zoom, settings.pageZoomPercent)) },
             leadingIcon = { Icon(Icons.Filled.ZoomIn, null) },
             onClick = {
                 onDismiss()
@@ -519,12 +521,13 @@ private fun BrowserMenuContent(
             }
             val cur = if (proxy.mode in chain) proxy.mode else "direct"
             val label = when (cur) {
-                "direct" -> "直连"
-                "auto" -> "自动"
-                else -> proxy.profiles.firstOrNull { it.id == cur }?.name ?: "直连"
+                "direct" -> stringResource(R.string.label_direct)
+                "auto" -> stringResource(R.string.label_auto)
+                else -> proxy.profiles.firstOrNull { it.id == cur }?.name
+                    ?: stringResource(R.string.label_direct)
             }
             DropdownMenuItem(
-                text = { Text("代理：$label") },
+                text = { Text(stringResource(R.string.menu_proxy, label)) },
                 leadingIcon = { Icon(Icons.Filled.Language, null) },
                 onClick = {
                     onDismiss()
@@ -544,7 +547,8 @@ private fun BrowserMenuContent(
             val allowlisted = settings.adBlockAllowlist.any { host == it || host.endsWith(".$it") }
             DropdownMenuItem(
                 text = {
-                    Text(if (allowlisted) "在此站点拦截广告" else "不拦截此站点的广告")
+                    Text(if (allowlisted) stringResource(R.string.adblock_block_site)
+                        else stringResource(R.string.adblock_unblock_site))
                 },
                 leadingIcon = { Icon(Icons.Filled.Block, null) },
                 onClick = {
@@ -562,7 +566,7 @@ private fun BrowserMenuContent(
             )
         }
         DropdownMenuItem(
-            text = { Text("书签") },
+            text = { Text(stringResource(R.string.bookmarks_title)) },
             leadingIcon = { Icon(Icons.Filled.Bookmarks, null) },
             onClick = {
                 onDismiss()
@@ -570,7 +574,7 @@ private fun BrowserMenuContent(
             },
         )
         DropdownMenuItem(
-            text = { Text("设置") },
+            text = { Text(stringResource(R.string.menu_settings)) },
             leadingIcon = { Icon(Icons.Filled.Settings, null) },
             onClick = {
                 onDismiss()
@@ -584,13 +588,13 @@ private fun BrowserMenuContent(
 private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("退出浏览器？") },
-        text = { Text("当前没有可返回的页面，确定要退出吗？") },
+        title = { Text(stringResource(R.string.exit_title)) },
+        text = { Text(stringResource(R.string.exit_message)) },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text("退出") }
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.exit_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
 }
@@ -601,20 +605,20 @@ private fun CertificateDialog(controller: BrowserController, onDismiss: () -> Un
     val cert: SslCertificate? = controller.tabManager.currentWebView?.certificate
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("证书信息") },
+        title = { Text(stringResource(R.string.cert_title)) },
         text = {
             if (cert == null) {
-                Text("当前页面没有可用证书（非 HTTPS，或页面已被替换）")
+                Text(stringResource(R.string.cert_none))
             } else {
                 Column {
-                    CertRow("颁发给", cert.issuedTo.toString())
-                    CertRow("颁发者", cert.issuedBy.toString())
-                    CertRow("生效时间", formatTime(cert.validNotBeforeDate))
-                    CertRow("过期时间", formatTime(cert.validNotAfterDate))
+                    CertRow(stringResource(R.string.cert_issued_to), cert.issuedTo.toString())
+                    CertRow(stringResource(R.string.cert_issued_by), cert.issuedBy.toString())
+                    CertRow(stringResource(R.string.cert_valid_from), formatTime(cert.validNotBeforeDate))
+                    CertRow(stringResource(R.string.cert_valid_to), formatTime(cert.validNotAfterDate))
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
     )
 }
 
@@ -755,7 +759,7 @@ private fun Omnibox(
                         Box(Modifier.weight(1f)) {
                             if (value.text.isEmpty()) {
                                 Text(
-                                    if (UrlUtils.isHome(url)) "搜索或输入网址" else "",
+                                    if (UrlUtils.isHome(url)) stringResource(R.string.search_or_url) else "",
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -764,7 +768,7 @@ private fun Omnibox(
                         }
                         if (focused && value.text.isNotEmpty()) {
                             IconButton(onClick = { value = TextFieldValue("") }, modifier = Modifier.size(20.dp)) {
-                                Icon(Icons.Filled.Close, contentDescription = "清空", modifier = Modifier.size(16.dp))
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cd_clear_input), modifier = Modifier.size(16.dp))
                             }
                         }
                     }
@@ -783,7 +787,7 @@ private fun ZoomDialog(
 ) {
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("页面缩放") },
+        title = { Text(stringResource(R.string.zoom_title)) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -796,14 +800,14 @@ private fun ZoomDialog(
                     valueRange = 50f..200f,
                 )
                 Text(
-                    "整体缩放页面内容（含布局与图片），实时生效",
+                    stringResource(R.string.zoom_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("完成") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
         },
     )
 }
@@ -824,13 +828,13 @@ private fun BottomBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(enabled = nav.first, onClick = { controller.tabManager.goBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "后退")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             IconButton(enabled = nav.second, onClick = { controller.tabManager.goForward() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "前进")
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.cd_forward))
             }
             IconButton(onClick = { controller.tabManager.goHome() }) {
-                Icon(Icons.Filled.Home, contentDescription = "主页")
+                Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.cd_home))
             }
             Spacer(Modifier.weight(1f))
             IconButton(
@@ -839,19 +843,19 @@ private fun BottomBar(
             ) {
                 Icon(
                     Icons.Filled.Star,
-                    contentDescription = "收藏",
+                    contentDescription = stringResource(R.string.cd_bookmark),
                     tint = if (bookmarked) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             IconButton(onClick = { controller.screen.value = Screen.Tabs }) {
                 BadgedBox(badge = { Badge { Text(tabCount.toString()) } }) {
-                    Icon(Icons.Filled.Tab, contentDescription = "标签")
+                    Icon(Icons.Filled.Tab, contentDescription = stringResource(R.string.cd_tabs))
                 }
             }
             Box {
                 IconButton(onClick = { menuOpen = true }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "菜单")
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.cd_menu))
                 }
                 BrowserMenuContent(
                     controller = controller,
@@ -873,10 +877,10 @@ private fun ErrorOverlay(message: String, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
     ) {
-        Text("页面加载失败", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.page_load_failed), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("重试") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
     }
 }

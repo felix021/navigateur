@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.felix021.navigateur.ui.BrowserController
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 /** 隐私二级页：清理浏览数据 / 按站点清理 */
 @Composable
@@ -34,17 +36,17 @@ internal fun PrivacySettingsPage(controller: BrowserController, onBack: () -> Un
     var showClear by remember { mutableStateOf(false) }
     var showSiteClear by remember { mutableStateOf(false) }
 
-    SubPageScaffold("隐私", onBack) { pad ->
+    SubPageScaffold(stringResource(R.string.entry_privacy), onBack) { pad ->
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState()),
         ) {
             SettingItem(
-                title = "清理浏览数据",
-                value = "Cookie / 站点存储 / 缓存 / 历史 / 密码（全部）",
+                title = stringResource(R.string.privacy_clear_all),
+                value = stringResource(R.string.privacy_clear_all_desc),
             ) { showClear = true }
             SettingItem(
-                title = "按站点清理",
-                value = "清除指定站点的存储 / Cookie / 密码",
+                title = stringResource(R.string.privacy_clear_site),
+                value = stringResource(R.string.privacy_clear_site_desc),
             ) { showSiteClear = true }
             Spacer(Modifier.height(32.dp))
         }
@@ -90,7 +92,7 @@ private fun SiteClearDialog(
     }.filter { it != host }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("按站点清理") },
+        title = { Text(stringResource(R.string.privacy_clear_site)) },
         text = {
             Column(
                 Modifier
@@ -100,7 +102,7 @@ private fun SiteClearDialog(
                 OutlinedTextField(
                     value = host,
                     onValueChange = { host = it.trim() },
-                    label = { Text("站点域名") },
+                    label = { Text(stringResource(R.string.field_site_domain)) },
                     singleLine = true,
                 )
                 if (matched.isNotEmpty()) {
@@ -120,9 +122,9 @@ private fun SiteClearDialog(
                 }
                 Spacer(Modifier.height(4.dp))
                 CheckRow("Cookie", clearCookies) { clearCookies = it }
-                CheckRow("站点存储（localStorage 等）", clearStorage) { clearStorage = it }
-                CheckRow("已保存密码", clearPasswords) { clearPasswords = it }
-                CheckRow("浏览历史（该站点）", clearHistory) { clearHistory = it }
+                CheckRow(stringResource(R.string.clear_data_storage), clearStorage) { clearStorage = it }
+                CheckRow(stringResource(R.string.clear_data_passwords), clearPasswords) { clearPasswords = it }
+                CheckRow(stringResource(R.string.clear_data_history_site), clearHistory) { clearHistory = it }
             }
         },
         confirmButton = {
@@ -131,9 +133,9 @@ private fun SiteClearDialog(
                     if (host.isNotBlank()) onClear(host, clearCookies, clearStorage, clearPasswords, clearHistory)
                 },
                 enabled = host.isNotBlank(),
-            ) { Text("清理") }
+            ) { Text(stringResource(R.string.clear)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -155,16 +157,16 @@ private fun ClearDataDialog(
 ) {
     val labels = listOf(
         "Cookie",
-        "站点存储（localStorage 等）",
-        "缓存",
-        "表单数据",
-        "已保存密码",
-        "浏览历史",
+        stringResource(R.string.clear_data_storage),
+        stringResource(R.string.clear_data_cache),
+        stringResource(R.string.clear_data_form),
+        stringResource(R.string.clear_data_passwords),
+        stringResource(R.string.clear_data_history),
     )
     val checked = remember { mutableStateListOf(true, true, true, true, false, true) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("清理浏览数据") },
+        title = { Text(stringResource(R.string.privacy_clear_all)) },
         text = {
             Column {
                 labels.forEachIndexed { i, label ->
@@ -184,8 +186,8 @@ private fun ClearDataDialog(
         confirmButton = {
             TextButton(onClick = {
                 onClear(checked[0], checked[1], checked[2], checked[3], checked[4], checked[5])
-            }) { Text("清理") }
+            }) { Text(stringResource(R.string.clear)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

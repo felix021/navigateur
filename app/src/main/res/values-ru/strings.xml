@@ -1,0 +1,223 @@
+<resources>
+    <string name="app_name">Navigateur</string>
+
+    <!-- Общее -->
+    <string name="ok">ОК</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="back">Назад</string>
+    <string name="done">Готово</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Изменить</string>
+    <string name="add">Добавить</string>
+    <string name="close">Закрыть</string>
+    <string name="clear">Очистить</string>
+    <string name="retry">Повторить</string>
+    <string name="remove">Убрать</string>
+    <string name="follow_system">Как в системе</string>
+    <string name="download">Скачать</string>
+    <string name="downloading">Загрузка…</string>
+    <string name="import_action">Импорт</string>
+    <string name="add_prefixed">＋ Добавить</string>
+
+    <!-- Стартовая страница -->
+    <string name="start_no_bookmarks">Закладок пока нет: нажмите звезду в нижней панели, чтобы добавить текущую страницу</string>
+    <string name="search_or_url">Поиск или ввод адреса</string>
+
+    <!-- Закладки -->
+    <string name="bookmarks_title">Закладки</string>
+    <string name="bookmarks_empty">Нет закладок</string>
+    <string name="bookmark_add">Добавить закладку</string>
+    <string name="bookmark_edit">Изменить закладку</string>
+    <string name="field_title">Заголовок</string>
+    <string name="field_url">URL</string>
+
+    <!-- Вкладки -->
+    <string name="tabs_count">Вкладки (%1$d)</string>
+    <string name="tab_new">Новая вкладка</string>
+    <string name="new_tab_title">Стартовая страница</string>
+
+    <!-- Статус-строка -->
+    <string name="status_network">Сеть</string>
+    <string name="status_charging">Зарядка</string>
+
+    <!-- Браузер: меню и быстрые действия -->
+    <string name="menu_reload">Обновить</string>
+    <string name="menu_desktop_mode">Режим компьютера</string>
+    <string name="menu_zoom">Масштаб (%1$d%%)</string>
+    <string name="menu_proxy">Прокси: %1$s</string>
+    <string name="label_direct">Напрямую</string>
+    <string name="label_auto">Авто</string>
+    <string name="label_proxy">Прокси</string>
+    <string name="label_via_proxy">Через прокси</string>
+    <string name="adblock_block_site">Блокировать рекламу на этом сайте</string>
+    <string name="adblock_unblock_site">Не блокировать рекламу на этом сайте</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="copied_url">URL скопирован</string>
+    <string name="cd_copy_url">Копировать URL</string>
+    <string name="cd_certificate">Сертификат</string>
+    <string name="cd_address">Адрес</string>
+    <string name="cd_back">Назад</string>
+    <string name="cd_forward">Вперёд</string>
+    <string name="cd_home">Домой</string>
+    <string name="cd_bookmark">Закладка</string>
+    <string name="cd_tabs">Вкладки</string>
+    <string name="cd_menu">Меню</string>
+    <string name="cd_clear_input">Очистить</string>
+    <string name="exit_title">Выйти из браузера?</string>
+    <string name="exit_message">Нет страницы, куда можно вернуться. Всё равно выйти?</string>
+    <string name="exit_confirm">Выйти</string>
+    <string name="cert_title">Сертификат</string>
+    <string name="cert_none">Сертификат недоступен (не HTTPS или страница была заменена)</string>
+    <string name="cert_issued_to">Кому выдан</string>
+    <string name="cert_issued_by">Кем выдан</string>
+    <string name="cert_valid_from">Действителен с</string>
+    <string name="cert_valid_to">Действителен до</string>
+    <string name="zoom_title">Масштаб страницы</string>
+    <string name="zoom_desc">Масштабирует всю страницу (вёрстку и изображения), применяется сразу</string>
+    <string name="page_load_failed">Не удалось загрузить страницу</string>
+    <string name="network_error">Ошибка сети</string>
+
+    <!-- Загрузка и очистка -->
+    <string name="download_started">Загрузка начата</string>
+    <string name="download_failed">Не удалось скачать: %1$s</string>
+    <string name="cleared">Очищено</string>
+    <string name="cleared_site">Очищено: %1$s</string>
+
+    <!-- Сохранение пароля -->
+    <string name="save_password_title">Сохранить пароль?</string>
+    <string name="save_password_site">Сайт: %1$s</string>
+    <string name="save_password_account">Аккаунт: %1$s</string>
+    <string name="save_password_password">Пароль: ••••••••</string>
+    <string name="save_password_replacing">Заменит сохранённый аккаунт %1$s для этого сайта</string>
+    <string name="save_password_no">Не сохранять</string>
+
+    <!-- Поисковые системы (названия брендов без изменений) -->
+    <string name="engine_baidu">Baidu</string>
+
+    <!-- Пресеты User-Agent -->
+    <string name="ua_default">По умолчанию (устройство)</string>
+    <string name="ua_win">Компьютер · Windows</string>
+    <string name="ua_mac">Компьютер · macOS</string>
+    <string name="ua_linux">Компьютер · Linux</string>
+    <string name="ua_iphone">iPhone</string>
+    <string name="ua_huawei">Huawei Mate 60 Pro</string>
+    <string name="ua_xiaomi">Xiaomi 14</string>
+    <string name="ua_vivo">vivo X100</string>
+    <string name="ua_oppo">OPPO Find X7</string>
+    <string name="ua_custom_entry">Свой…</string>
+
+    <!-- Настройки: главная страница -->
+    <string name="settings_title">Настройки</string>
+    <string name="section_general">Общие</string>
+    <string name="section_display">Экран</string>
+    <string name="section_website">Сайты</string>
+    <string name="section_more">Ещё</string>
+    <string name="settings_homepage">Домашняя страница</string>
+    <string name="homepage_builtin">Встроенная стартовая</string>
+    <string name="homepage_hint">Укажите about:home для встроенной стартовой страницы; иначе новые вкладки открывают этот URL</string>
+    <string name="settings_search_engine">Поисковая система</string>
+    <string name="settings_save_passwords">Сохранять пароли</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_theme">Тема</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="settings_zoom">Масштаб страницы</string>
+    <string name="settings_font">Шрифт</string>
+    <string name="font_default">По умолчанию (как на сайте)</string>
+    <string name="font_sans">Без засечек</string>
+    <string name="font_serif">С засечками</string>
+    <string name="font_monospace">Моноширинный</string>
+    <string name="settings_landscape_side">Сторона панели в альбомной ориентации</string>
+    <string name="landscape_left">Слева</string>
+    <string name="landscape_right">Справа</string>
+    <string name="settings_landscape_fullscreen">Полный экран в альбомной</string>
+    <string name="landscape_fullscreen_desc">Скрывать строку состояния в альбомной ориентации, использовать всю высоту экрана</string>
+    <string name="settings_landscape_safe_area">Нижняя безопасная зона (альбомная)</string>
+    <string name="landscape_safe_area_desc">Показывать системную панель жестов и обходить её; выкл. — истинный полный экран (собственная строка состояния остаётся)</string>
+    <string name="settings_desktop_default">Режим компьютера по умолчанию</string>
+    <string name="desktop_default_desc">Открывать новые вкладки с компьютерным UA (когда пресет UA — По умолчанию)</string>
+    <string name="settings_ua">User-Agent</string>
+    <string name="ua_custom_title">Свой User-Agent</string>
+    <string name="ua_custom_hint">Применяется сразу и обновляет открытые страницы; пусто — вернуться к значению по умолчанию</string>
+    <string name="entry_adblock">Блокировка рекламы</string>
+    <string name="entry_proxy">Прокси</string>
+    <string name="entry_developer">Разработчик</string>
+    <string name="entry_privacy">Конфиденциальность</string>
+    <string name="adblock_off_status">Выкл. · правил: %1$d</string>
+    <string name="adblock_updating">Обновление…</string>
+    <string name="adblock_update_failed">Ошибка обновления: %1$s (нажмите, чтобы повторить)</string>
+    <string name="adblock_rules_updated">Правил: %1$d · обновлено %2$s</string>
+    <string name="adblock_rules_builtin">Правил: %1$d · встроенная версия (нажмите для онлайн-обновления)</string>
+    <string name="proxy_status_auto">Авто-переключение (выход: %1$s, %2$s)</string>
+    <string name="proxy_status_fixed">Фикс.: %1$s</string>
+    <string name="proxy_outlet_unset">(выход не задан)</string>
+    <string name="proxy_default_direct">Без совпадения: напрямую</string>
+    <string name="proxy_default_proxy">Без совпадения: через прокси</string>
+    <string name="developer_summary">Инструменты страницы / удалённая отладка</string>
+    <string name="developer_remote_on">Удалённая отладка</string>
+    <string name="privacy_summary">Очистка данных / очистка по сайту</string>
+
+    <!-- Настройки: блокировка рекламы -->
+    <string name="adblock_switch">Блокировать рекламу</string>
+    <string name="adblock_switch_desc">На основе EasyList + EasyList China; блокирует запросы и скрывает рекламные элементы</string>
+    <string name="adblock_update">Обновить правила рекламы</string>
+    <string name="adblock_allowlist">Белый список сайтов</string>
+    <string name="adblock_allowlist_empty">Пусто (действует на всех сайтах)</string>
+    <string name="adblock_allowlist_count">Сайтов без блокировки: %1$d</string>
+    <string name="adblock_allowlist_hint">Белый список пуст; блокировка действует на всех сайтах.\nВ меню браузера её можно отключить для текущего сайта.</string>
+
+    <!-- Настройки: прокси -->
+    <string name="proxy_current_mode">Текущий режим</string>
+    <string name="proxy_outlets">Прокси-выходы</string>
+    <string name="proxy_not_added">Нет</string>
+    <string name="proxy_rules_count">Правил: %1$d (напрямую %2$d · прокси %3$d)</string>
+    <string name="proxy_import_entry">Импорт списка правил</string>
+    <string name="proxy_import_entry_desc">Вставьте текст или укажите URL для загрузки; форматы AutoProxy / gfwlist</string>
+    <string name="proxy_mode_title">Режим прокси</string>
+    <string name="proxy_mode_fixed_route">Фикс. через %1$s</string>
+    <string name="proxy_mode_auto_rules">Авто-переключение (по правилам)</string>
+    <string name="proxy_default_outlet_hint">Выход по умолчанию (основа маршрутизации по правилам при нескольких выходах):</string>
+    <string name="proxy_unmatched_label">Домены без совпадения правил:</string>
+    <string name="proxy_unmatched_proxy">Через прокси (правила direct становятся bypass; привычка SwitchyOmega)</string>
+    <string name="proxy_unmatched_direct">Напрямую (правила proxy действуют по сайтам; привычка AutoProxy / gfwlist)</string>
+    <string name="proxy_no_outlet_hint">Прокси-выходов нет — сначала добавьте их в «Прокси-выходы»</string>
+    <string name="proxy_add_outlet">Добавить прокси-выход</string>
+    <string name="field_name">Имя</string>
+    <string name="field_host">Хост</string>
+    <string name="field_port">Порт</string>
+    <string name="proxy_add_rule">Добавить правило</string>
+    <string name="proxy_rules_title">Правила авто-переключения</string>
+    <string name="proxy_rules_hint">Домены с правилом direct идут напрямую; с правилом proxy — через прокси (при «Без совпадения: напрямую»)</string>
+    <string name="proxy_rule_pattern_label">Домен, напр. baidu.com или *.google.com</string>
+    <string name="proxy_import_no_rules">Подходящих правил не найдено</string>
+    <string name="proxy_import_paste_hint">Вставьте правила (формат AutoProxy / gfwlist)</string>
+    <string name="proxy_import_url_hint">Или URL списка правил</string>
+    <string name="proxy_import_download_failed">Ошибка загрузки: %1$s</string>
+    <string name="import_append">Добавить к существующим</string>
+    <string name="import_replace">Заменить существующие</string>
+    <string name="proxy_import_default_hint">После импорта AutoProxy / gfwlist рекомендуется «Без совпадения: напрямую»: перечисленные домены идут через прокси, остальные — напрямую.</string>
+    <string name="parse_preview">Предпросмотр разбора</string>
+    <string name="proxy_import_parsed">Разобрано правил: %1$d (напрямую %2$d · прокси %3$d)%4$s</string>
+    <string name="proxy_import_skipped">, пропущено неподдерживаемых: %1$d</string>
+    <string name="proxy_import_will_clear">Будут удалены существующие правила: %1$d</string>
+
+    <!-- Настройки: разработчик -->
+    <string name="dev_remote_title">Удалённая отладка (chrome://inspect / CDP)</string>
+    <string name="dev_remote_desc">По умолчанию выключено. После включения компьютер сможет проверять страницы в полном Chrome DevTools через adb; переключение также: am start --ez remote_debug true</string>
+    <string name="dev_eruda_title">Инструменты на странице (eruda)</string>
+    <string name="dev_eruda_desc">Просмотр Console / Elements / Network / Storage прямо на телефоне; переключение также: am start --ez dev_tools true</string>
+
+    <!-- Настройки: конфиденциальность -->
+    <string name="privacy_clear_all">Очистить данные просмотра</string>
+    <string name="privacy_clear_all_desc">Cookie / хранилище сайтов / кэш / история / пароли (всё)</string>
+    <string name="privacy_clear_site">Очистить по сайту</string>
+    <string name="privacy_clear_site_desc">Очистить хранилище / cookie / пароли указанного сайта</string>
+    <string name="field_site_domain">Домен сайта</string>
+    <string name="clear_data_storage">Хранилище сайта (localStorage и др.)</string>
+    <string name="clear_data_passwords">Сохранённые пароли</string>
+    <string name="clear_data_history_site">История (этот сайт)</string>
+    <string name="clear_data_cache">Кэш</string>
+    <string name="clear_data_form">Данные форм</string>
+    <string name="clear_data_history">История просмотра</string>
+</resources>

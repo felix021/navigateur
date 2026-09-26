@@ -39,6 +39,8 @@ import com.felix021.navigateur.data.Bookmark
 import com.felix021.navigateur.ui.BrowserController
 import com.felix021.navigateur.ui.Screen
 import com.felix021.navigateur.ui.component.BookmarkDialog
+import androidx.compose.ui.res.stringResource
+import com.felix021.navigateur.R
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -50,10 +52,10 @@ fun BookmarksScreen(controller: BrowserController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("书签") },
+                title = { Text(stringResource(R.string.bookmarks_title)) },
                 navigationIcon = {
                     IconButton(onClick = { controller.screen.value = Screen.Browser }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -61,7 +63,7 @@ fun BookmarksScreen(controller: BrowserController) {
                         editTarget = null
                         dialogOpen = true
                     }) {
-                        Icon(Icons.Filled.Add, contentDescription = "添加")
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add))
                     }
                 },
             )
@@ -73,7 +75,7 @@ fun BookmarksScreen(controller: BrowserController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
             ) {
-                Text("暂无书签", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.bookmarks_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(Modifier.fillMaxSize().padding(pad)) {
@@ -103,10 +105,10 @@ fun BookmarksScreen(controller: BrowserController) {
                                     editTarget = b
                                     dialogOpen = true
                                 }) {
-                                    Icon(Icons.Filled.Edit, contentDescription = "编辑")
+                                    Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.edit))
                                 }
                                 IconButton(onClick = { controller.container.bookmarks.remove(b.id) }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "删除")
+                                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                                 }
                             }
                         },
