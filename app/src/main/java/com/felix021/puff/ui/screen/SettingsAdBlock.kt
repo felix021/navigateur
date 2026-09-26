@@ -92,7 +92,7 @@ private fun AdAllowlistDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.adblock_allowlist)) },
         text = {
-            Column(Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 if (hosts.isEmpty()) {
                     Text(
                         stringResource(R.string.adblock_allowlist_hint),

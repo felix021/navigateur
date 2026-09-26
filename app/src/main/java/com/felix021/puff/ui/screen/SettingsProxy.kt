@@ -161,7 +161,7 @@ private fun ProxyModeDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.proxy_mode_title)) },
         text = {
-            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 options.forEach { (id, label) ->
                     Row(
                         Modifier.fillMaxWidth().clickable { onSelect(id, autoId, autoDefault) }.padding(vertical = 6.dp),
@@ -250,7 +250,7 @@ private fun ProxyProfilesDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (adding) stringResource(R.string.proxy_add_outlet) else stringResource(R.string.proxy_outlets)) },
         text = {
-            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 if (!adding) {
                     proxy.profiles.forEach { pf ->
                         Row(
@@ -276,29 +276,6 @@ private fun ProxyProfilesDialog(
                     }
                     TextButton(onClick = { adding = true }) { Text(stringResource(R.string.add_prefixed)) }
                 } else {
-                    // ss:// 链接一键导入（SIP002 + 旧格式），成功回填下方表单
-                    OutlinedTextField(
-                        value = ssLink,
-                        onValueChange = { ssLink = it },
-                        label = { Text(stringResource(R.string.proxy_ss_link_hint)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Row(horizontalArrangement = Arrangement.End) {
-                        TextButton(
-                            enabled = ssLink.isNotBlank(),
-                            onClick = {
-                                val pf = ProxyRepository.parseSsLink(ssLink)
-                                if (pf != null) {
-                                    type = "SS"; name = pf.name; host = pf.host
-                                    port = pf.port.toString(); method = pf.method; password = pf.password
-                                    ssLink = ""
-                                } else {
-                                    Toast.makeText(context, context.getString(R.string.proxy_ss_link_invalid), Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                        ) { Text(stringResource(R.string.proxy_ss_import)) }
-                    }
                     OutlinedTextField(
                         value = name, onValueChange = { name = it },
                         label = { Text(stringResource(R.string.field_name)) },
@@ -314,6 +291,31 @@ private fun ProxyProfilesDialog(
                                 RadioButton(selected = type == t, onClick = { type = t }, modifier = Modifier.size(36.dp))
                                 Text(t, style = MaterialTheme.typography.bodyMedium)
                             }
+                        }
+                    }
+                    // ss:// 链接一键导入（SIP002 + 旧格式）：只对 SS 出口有意义，放在类型选择下方
+                    if (type == "SS") {
+                        OutlinedTextField(
+                            value = ssLink,
+                            onValueChange = { ssLink = it },
+                            label = { Text(stringResource(R.string.proxy_ss_link_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Row(horizontalArrangement = Arrangement.End) {
+                            TextButton(
+                                enabled = ssLink.isNotBlank(),
+                                onClick = {
+                                    val pf = ProxyRepository.parseSsLink(ssLink)
+                                    if (pf != null) {
+                                        name = pf.name; host = pf.host
+                                        port = pf.port.toString(); method = pf.method; password = pf.password
+                                        ssLink = ""
+                                    } else {
+                                        Toast.makeText(context, context.getString(R.string.proxy_ss_link_invalid), Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                            ) { Text(stringResource(R.string.proxy_ss_import)) }
                         }
                     }
                     OutlinedTextField(
@@ -398,7 +400,7 @@ private fun ProxyRulesDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (adding) stringResource(R.string.proxy_add_rule) else stringResource(R.string.proxy_rules_title)) },
         text = {
-            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 if (!adding) {
                     Text(
                         stringResource(R.string.proxy_rules_hint),
@@ -501,7 +503,7 @@ private fun ProxyImportDialog(
         onDismissRequest = { if (!loading) onDismiss() },
         title = { Text(stringResource(R.string.proxy_import_entry)) },
         text = {
-            Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 // 来源切换：一次只用一种输入，避免两个框并列显得杂乱
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     SegmentedButton(

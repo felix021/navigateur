@@ -53,7 +53,7 @@ internal fun UaPresetsDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_ua)) },
         text = {
-            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+            Column {
                 UaPresets.ALL.forEach { p ->
                     PresetRow(
                         label = p.labelText(),

@@ -5,4 +5,13 @@
         <item name="android:statusBarColor">@color/window_bg</item>
         <item name="android:navigationBarColor">@color/window_bg</item>
     </style>
+    <!-- 对话框窗口动画：纯淡入淡出（无位移）。系统默认从顶部滑入，
+         会看到「先在屏幕上方再跳到中央」的跳变 -->
+    <style name="PuffDialogAnim">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+    <style name="PuffDialogTheme" parent="@android:style/Theme.DeviceDefault.Dialog">
+        <item name="android:windowAnimationStyle">@style/PuffDialogAnim</item>
+    </style>
 </resources>

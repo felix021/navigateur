@@ -5,4 +5,22 @@
         <item name="android:statusBarColor">@color/window_bg</item>
         <item name="android:navigationBarColor">@color/window_bg</item>
     </style>
+    <!-- 对话框窗口动画：纯淡入淡出（无位移）。系统默认从顶部滑入，
+         会看到「先在屏幕上方再跳到中央」的跳变 -->
+    <style name="PuffDialogAnim">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+    <!-- 同名覆盖 androidx.compose.ui 的对话框窗口主题：注入无位移的 fade 动画，
+         避免系统默认「从顶部滑入」造成「先在上方再跳中央」的跳变。
+     原始 item（windowClipToOutline / dialogTheme）必须保留 -->
+    <style name="DialogWindowTheme">
+        <item name="android:windowClipToOutline">false</item>
+        <item name="android:windowAnimationStyle">@style/PuffDialogAnim</item>
+    </style>
+    <style name="FloatingDialogWindowTheme">
+        <item name="android:windowClipToOutline">false</item>
+        <item name="android:dialogTheme">@style/FloatingDialogTheme</item>
+        <item name="android:windowAnimationStyle">@style/PuffDialogAnim</item>
+    </style>
 </resources>

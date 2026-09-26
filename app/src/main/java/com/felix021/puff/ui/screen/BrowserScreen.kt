@@ -55,8 +55,12 @@ import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.ZoomIn
 import com.felix021.puff.ui.component.AppDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -465,9 +469,7 @@ private fun SideToolbar(
                 )
             }
             IconButton(onClick = { controller.screen.value = Screen.Tabs }) {
-                BadgedBox(badge = { Badge { Text(tabCount.toString()) } }) {
-                    Icon(Icons.Filled.Tab, contentDescription = stringResource(R.string.cd_tabs))
-                }
+                TabCountIcon(tabCount)
             }
             Box {
                 IconButton(onClick = { onMenuOpenChange(true) }) {
@@ -921,6 +923,30 @@ private fun Omnibox(
     }
 }
 
+/** Chrome 风格标签数指示：圆角方框内写数字，不使用红色角标 */
+@Composable
+private fun TabCountIcon(count: Int) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Box(
+        Modifier
+            .size(24.dp)
+            .semantics { contentDescription = "标签页 $count" },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            Modifier
+                .size(20.dp)
+                .border(2.dp, color, RoundedCornerShape(5.dp)),
+        )
+        Text(
+            count.toString(),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+        )
+    }
+}
+
 /** 页面缩放对话框：滑块实时改整体缩放 */
 @Composable
 private fun ZoomDialog(
@@ -992,9 +1018,7 @@ private fun BottomBar(
                 )
             }
             IconButton(onClick = { controller.screen.value = Screen.Tabs }) {
-                BadgedBox(badge = { Badge { Text(tabCount.toString()) } }) {
-                    Icon(Icons.Filled.Tab, contentDescription = stringResource(R.string.cd_tabs))
-                }
+                TabCountIcon(tabCount)
             }
             Box {
                 IconButton(onClick = { menuOpen = true }) {
