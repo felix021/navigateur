@@ -1,40 +1,35 @@
 package com.felix021.navigateur.ui.screen
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.offset
-import androidx.compose.ui.zIndex
 import com.felix021.navigateur.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
@@ -185,7 +180,7 @@ internal fun SettingsJumpTarget(scroll: androidx.compose.foundation.ScrollState,
     }
 }
 
-/** 设置页顶部搜索框：输入即出下拉候选（与搜索框同宽对齐的面板），点击跳转 */
+/** 设置页顶部搜索框：输入即出下拉候选（与搜索框同宽的自绘样式菜单），点击跳转 */
 @Composable
 internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
     val context = LocalContext.current
@@ -193,8 +188,6 @@ internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
     var query by remember { mutableStateOf("") }
     val matches = remember(query) { matchSettings(query, context) }
     val expanded = query.isNotBlank() && matches.isNotEmpty()
-    var fieldHeightDp by remember { mutableIntStateOf(0) }
-    val density = androidx.compose.ui.platform.LocalDensity.current
 
     androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -212,41 +205,23 @@ internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .onSizeChanged { fieldHeightDp = it.height },
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        if (expanded) {
-            // 点面板外关闭：透明 scrim 垫底
-            androidx.compose.foundation.layout.Box(
-                Modifier
-                    .matchParentSize()
-                    .clickable { query = "" },
-            )
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .offset(y = with(density) { fieldHeightDp.toDp() } + 2.dp)
-                    .zIndex(1f),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                tonalElevation = 3.dp,
-                shadowElevation = 6.dp,
-            ) {
-                Column(Modifier.padding(vertical = 6.dp)) {
-                    matches.forEach { e ->
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    query = ""
-                                    // 收起键盘：跳转目标定位在列表上部，别让 IME 挡住
-                                    focusManager.clearFocus()
-                                    onSelect(e)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                        ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { query = "" },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 3.dp,
+            shadowElevation = 6.dp,
+        ) {
+            matches.forEach { e ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
                             Text(stringResource(e.titleRes), style = MaterialTheme.typography.bodyLarge)
                             e.page?.let {
                                 Text(
@@ -256,8 +231,14 @@ internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
                                 )
                             }
                         }
-                    }
-                }
+                    },
+                    onClick = {
+                        query = ""
+                        // 收起键盘：跳转目标定位在列表上部，别让 IME 挡住
+                        focusManager.clearFocus()
+                        onSelect(e)
+                    },
+                )
             }
         }
     }
