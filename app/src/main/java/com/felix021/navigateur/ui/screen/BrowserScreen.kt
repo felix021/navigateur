@@ -678,8 +678,8 @@ private fun SiteInfoDialog(controller: BrowserController, onDismiss: () -> Unit)
                 )
                 Spacer(Modifier.height(8.dp))
                 if (cert != null) {
-                    CertRow(stringResource(R.string.cert_issued_to), cert.issuedTo.toString())
-                    CertRow(stringResource(R.string.cert_issued_by), cert.issuedBy.toString())
+                    CertRow(stringResource(R.string.cert_issued_to), certName(cert, byIssuer = false))
+                    CertRow(stringResource(R.string.cert_issued_by), certName(cert, byIssuer = true))
                     CertRow(stringResource(R.string.cert_valid_from), formatTime(cert.validNotBeforeDate))
                     CertRow(stringResource(R.string.cert_valid_to), formatTime(cert.validNotAfterDate))
                 } else {
@@ -694,6 +694,21 @@ private fun SiteInfoDialog(controller: BrowserController, onDismiss: () -> Unit)
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
     )
 }
+
+/**
+ * 证书主体/颁发者 DN 文本。
+ * API 29 起 getIssuedTo/By 返回 DName（toString 未覆写，会显示成对象地址，须取 getDName）；
+ * 老 API 返回 String，编译期已绑定新签名，运行时直接调会 NoSuchMethodError —— 走反射。
+ */
+private fun certName(cert: SslCertificate, byIssuer: Boolean): String = runCatching {
+    if (android.os.Build.VERSION.SDK_INT >= 29) {
+        val dn = if (byIssuer) cert.issuedBy else cert.issuedTo
+        dn.dName
+    } else {
+        val m = SslCertificate::class.java.getMethod(if (byIssuer) "getIssuedBy" else "getIssuedTo")
+        m.invoke(cert)?.toString() ?: ""
+    }
+}.getOrDefault("")
 
 private fun formatTime(date: Date?): String =
     date?.let { java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(it) } ?: "—"
