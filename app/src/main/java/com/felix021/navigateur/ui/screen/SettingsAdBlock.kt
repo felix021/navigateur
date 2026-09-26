@@ -42,7 +42,7 @@ internal fun AdBlockSettingsPage(controller: BrowserController, onBack: () -> Un
 
     val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_adblock), onBack) { pad ->
-        SettingsJumpTarget(scroll)
+        SettingsJumpTarget(scroll, SubPage.AdBlock)
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {

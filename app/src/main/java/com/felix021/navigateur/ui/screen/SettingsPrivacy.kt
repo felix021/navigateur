@@ -38,7 +38,7 @@ internal fun PrivacySettingsPage(controller: BrowserController, onBack: () -> Un
 
     val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_privacy), onBack) { pad ->
-        SettingsJumpTarget(scroll)
+        SettingsJumpTarget(scroll, SubPage.Privacy)
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {

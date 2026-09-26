@@ -52,12 +52,14 @@ internal fun AboutSettingsPage(controller: BrowserController, onBack: () -> Unit
             .getOrNull().orEmpty()
     }
 
+    val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_about), onBack) { pad ->
+        SettingsJumpTarget(scroll, SubPage.About)
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(pad)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .settingsList(),
         ) {
             Text(

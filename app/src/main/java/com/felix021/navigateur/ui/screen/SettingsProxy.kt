@@ -69,7 +69,7 @@ internal fun ProxySettingsPage(controller: BrowserController, onBack: () -> Unit
 
     val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_proxy), onBack) { pad ->
-        SettingsJumpTarget(scroll)
+        SettingsJumpTarget(scroll, SubPage.Proxy)
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {

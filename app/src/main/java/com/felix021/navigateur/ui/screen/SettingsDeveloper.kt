@@ -23,7 +23,7 @@ internal fun DeveloperSettingsPage(controller: BrowserController, onBack: () -> 
 
     val scroll = rememberScrollState()
     SubPageScaffold(stringResource(R.string.entry_developer), onBack) { pad ->
-        SettingsJumpTarget(scroll)
+        SettingsJumpTarget(scroll, SubPage.Developer)
         Column(
             Modifier.fillMaxSize().padding(pad).verticalScroll(scroll).settingsList(),
         ) {

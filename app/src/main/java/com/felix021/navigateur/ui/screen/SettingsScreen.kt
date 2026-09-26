@@ -146,7 +146,7 @@ fun SettingsScreen(controller: BrowserController) {
     ) { pad ->
         Column(Modifier.fillMaxSize().padding(pad)) {
             SettingsSearchBar { entry -> nav.requestJump(entry) { p -> sub = p } }
-            SettingsJumpTarget(listScroll)
+            SettingsJumpTarget(listScroll, null)
             Column(
                 Modifier
                     .weight(1f)

@@ -112,8 +112,8 @@ internal fun matchSettings(query: String, context: android.content.Context): Lis
     }.sortedBy { it.first }.map { it.second }
 }
 
-/** 一次跳转请求：nonce 保证重复点同一项也能触发 */
-internal data class JumpRequest(val id: String, val nonce: Int)
+/** 一次跳转请求：nonce 保证重复点同一项也能触发；page 标明该由哪个页面消费 */
+internal data class JumpRequest(val id: String, val nonce: Int, val page: SubPage?)
 
 /**
  * 设置页共享导航状态：定位坐标（供滚动）、跳转目标、呼吸灯高亮。
@@ -127,10 +127,22 @@ internal class SettingsNav {
     var jump by mutableStateOf<JumpRequest?>(null)
     var highlightId by mutableStateOf<String?>(null)
     private var nonce = 0
+    private var consumedNonce = 0
 
     fun requestJump(entry: SearchEntry, setSub: (SubPage?) -> Unit) {
         setSub(entry.page)
-        jump = JumpRequest(entry.id, ++nonce)
+        jump = JumpRequest(entry.id, ++nonce, entry.page)
+    }
+
+    /**
+     * 取属于 [page] 且未被消费的跳转。消费式协议解决两个问题：
+     * 页面重组时 effect 重放旧跳转；跨页切换时源页面 effect 抢先消费新跳转。
+     */
+    fun consumeJump(page: SubPage?): JumpRequest? {
+        val j = jump ?: return null
+        if (j.page != page || j.nonce == consumedNonce) return null
+        consumedNonce = j.nonce
+        return j
     }
 
     fun clearHighlight() {
@@ -148,15 +160,15 @@ internal fun Modifier.settingsList(): Modifier {
 }
 
 /**
- * 页面级跳转执行器：挂在每个滚动页面里，拿到本页 ScrollState。
+ * 页面级跳转执行器：挂在每个滚动页面里，[page] 为本页标识（一级页传 null）。
  * 流程：等目标项上报坐标 → 滚到其下方留白处 → 触发呼吸灯高亮。
  */
 @Composable
-internal fun SettingsJumpTarget(scroll: androidx.compose.foundation.ScrollState) {
+internal fun SettingsJumpTarget(scroll: androidx.compose.foundation.ScrollState, page: SubPage?) {
     val nav = LocalSettingsNav.current ?: return
     val density = LocalDensity.current
     LaunchedEffect(nav.jump) {
-        val req = nav.jump ?: return@LaunchedEffect
+        val req = nav.consumeJump(page) ?: return@LaunchedEffect
         // 等目标项完成布局并上报坐标（切页后新页面首帧）
         val pos = withTimeoutOrNull(1200) {
             snapshotFlow { nav.positions[req.id] }.first { it != null }
@@ -172,6 +184,7 @@ internal fun SettingsJumpTarget(scroll: androidx.compose.foundation.ScrollState)
 @Composable
 internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
     val context = LocalContext.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     var query by remember { mutableStateOf("") }
     val matches = remember(query) { matchSettings(query, context) }
     val expanded = query.isNotBlank() && matches.isNotEmpty()
@@ -211,6 +224,8 @@ internal fun SettingsSearchBar(onSelect: (SearchEntry) -> Unit) {
                     },
                     onClick = {
                         query = ""
+                        // 收起键盘：跳转目标定位在列表上部，别让 IME 挡住
+                        focusManager.clearFocus()
                         onSelect(e)
                     },
                 )
