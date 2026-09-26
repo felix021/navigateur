@@ -29,8 +29,14 @@ object UaPresets {
         UaPreset("xiaomi", "小米 14", "Mozilla/5.0 (Linux; Android 14; 23127PN0CC) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36", false, R.string.ua_xiaomi),
         UaPreset("vivo", "vivo X100", "Mozilla/5.0 (Linux; Android 14; V2310A) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36", false, R.string.ua_vivo),
         UaPreset("oppo", "OPPO Find X7", "Mozilla/5.0 (Linux; Android 14; PHZ110) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36", false, R.string.ua_oppo),
-        UaPreset(CUSTOM, "自定义…", "", false, R.string.ua_custom_entry),
     )
 
     fun byId(id: String): UaPreset = ALL.firstOrNull { it.id == id } ?: ALL[0]
+
+    /** 解析预设：用户自定义优先，其次内置，都未命中回退默认 */
+    fun byId(id: String, custom: List<UaPreset>): UaPreset =
+        custom.firstOrNull { it.id == id } ?: byId(id)
 }
+
+/** 当前设置选中的 UA 预设（含自定义列表解析） */
+fun BrowserSettings.resolveUa(id: String = uaPresetId): UaPreset = UaPresets.byId(id, customUas)

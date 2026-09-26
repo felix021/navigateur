@@ -39,7 +39,9 @@ import com.felix021.navigateur.data.ProxyRepository
 import com.felix021.navigateur.data.ProxySettings
 import com.felix021.navigateur.data.SearchEngines
 import com.felix021.navigateur.data.ThemeMode
+import com.felix021.navigateur.data.UaPreset
 import com.felix021.navigateur.data.UaPresets
+import com.felix021.navigateur.data.resolveUa
 import com.felix021.navigateur.ui.BrowserController
 import com.felix021.navigateur.ui.Screen
 import com.felix021.navigateur.ui.component.SingleChoiceDialog
@@ -102,7 +104,8 @@ fun SettingsScreen(controller: BrowserController) {
     var showTheme by remember { mutableStateOf(false) }
     var showFont by remember { mutableStateOf(false) }
     var showUa by remember { mutableStateOf(false) }
-    var showUaCustom by remember { mutableStateOf(false) }
+    var showUaEdit by remember { mutableStateOf(false) }
+    var uaEditTarget by remember { mutableStateOf<com.felix021.navigateur.data.UaPreset?>(null) }
     var showLandSide by remember { mutableStateOf(false) }
     val adStatus by controller.container.adBlock.status.collectAsState()
     val proxy = ProxyRepository.fromJson(settings.proxyJson)
@@ -318,32 +321,37 @@ fun SettingsScreen(controller: BrowserController) {
         )
     }
     if (showUa) {
-        SingleChoiceDialog(
-            title = stringResource(R.string.settings_ua),
-            options = UaPresets.ALL,
-            selected = UaPresets.byId(settings.uaPresetId),
-            label = { it.labelText() },
-            onDismiss = { showUa = false },
-            onSelect = {
-                showUa = false
-                if (it.id == UaPresets.CUSTOM) {
-                    showUaCustom = true
-                } else {
-                    update { s -> s.copy(uaPresetId = it.id) }
-                }
+        UaPresetsDialog(
+            customPresets = settings.customUas,
+            selectedId = settings.uaPresetId,
+            onSelect = { p -> update { s -> s.copy(uaPresetId = p.id) } },
+            onEdit = { p -> uaEditTarget = p; showUaEdit = true },
+            onDelete = { p ->
+                update { s -> s.copy(
+                    customUas = s.customUas.filterNot { it.id == p.id },
+                    uaPresetId = if (s.uaPresetId == p.id) UaPresets.byId("default").id else s.uaPresetId,
+                ) }
             },
+            onDismiss = { showUa = false },
         )
     }
-    if (showUaCustom) {
-        TextInputDialog(
-            title = stringResource(R.string.ua_custom_title),
-            initial = settings.customUserAgent,
-            label = stringResource(R.string.settings_ua),
-            supportingText = stringResource(R.string.ua_custom_hint),
-            onDismiss = { showUaCustom = false },
-            onOk = { v ->
-                update { it.copy(uaPresetId = UaPresets.CUSTOM, customUserAgent = v) }
-                showUaCustom = false
+    if (showUaEdit) {
+        UaPresetEditDialog(
+            initial = uaEditTarget,
+            onDismiss = { showUaEdit = false },
+            onOk = { name, ua ->
+                update { s ->
+                    val target = uaEditTarget
+                    if (target == null) {
+                        val np = com.felix021.navigateur.data.UaPreset("cus_${System.currentTimeMillis()}", name, ua)
+                        s.copy(customUas = s.customUas + np, uaPresetId = np.id)
+                    } else {
+                        s.copy(customUas = s.customUas.map {
+                            if (it.id == target.id) it.copy(label = name, ua = ua) else it
+                        })
+                    }
+                }
+                showUaEdit = false
             },
         )
     }
@@ -368,14 +376,7 @@ internal fun SubPageScaffold(title: String, onBack: () -> Unit, content: @Compos
 }
 
 @Composable
-internal fun uaDisplay(s: BrowserSettings): String {
-    val preset = UaPresets.byId(s.uaPresetId)
-    return if (preset.id == UaPresets.CUSTOM) {
-        s.customUserAgent.ifBlank { stringResource(R.string.ua_default) }
-    } else {
-        preset.labelText()
-    }
-}
+internal fun uaDisplay(s: BrowserSettings): String = s.resolveUa().labelText()
 
 @Composable
 internal fun adRulesLabel(s: AdBlockStatus): String = when {

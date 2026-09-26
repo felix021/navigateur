@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">Personalizado…</string>
 
+    <string name="ua_presets_section">Perfiles personalizados</string>
+    <string name="ua_presets_add">Añadir perfil</string>
+    <string name="ua_preset_edit">Editar perfil</string>
+    <string name="ua_presets_empty">Aún no hay perfiles personalizados</string>
+    <string name="ua_custom_name">Personalizado</string>
+    <string name="ua_preset_ua_hint">Cadena User-Agent de este perfil, se aplica al instante</string>
+
     <!-- Ajustes: página principal -->
     <string name="settings_title">Ajustes</string>
     <string name="section_general">General</string>

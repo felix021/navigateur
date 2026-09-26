@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">自定义…</string>
 
+    <string name="ua_presets_section">自定义预设</string>
+    <string name="ua_presets_add">添加预设</string>
+    <string name="ua_preset_edit">编辑预设</string>
+    <string name="ua_presets_empty">还没有自定义预设</string>
+    <string name="ua_custom_name">自定义</string>
+    <string name="ua_preset_ua_hint">预设的 User-Agent 字符串，保存后立即生效</string>
+
     <!-- 设置：主页面 -->
     <string name="settings_title">设置</string>
     <string name="section_general">常规</string>

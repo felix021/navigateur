@@ -8,6 +8,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.felix021.navigateur.data.BrowserSettings
 import com.felix021.navigateur.data.UaPresets
+import com.felix021.navigateur.data.resolveUa
 
 /** 所有 WebView 的 WebSettings 集中配置 */
 object WebViewFactory {
@@ -48,10 +49,9 @@ object WebViewFactory {
      * 仅预设为默认时，桌面模式开关切换 移动 ↔ macOS 桌面 UA。
      */
     fun applyUserAgent(context: Context, wv: WebView, s: BrowserSettings, desktopMode: Boolean) {
-        val preset = UaPresets.byId(s.uaPresetId)
+        val preset = s.resolveUa()
         wv.settings.userAgentString = when {
-            preset.id == UaPresets.CUSTOM && s.customUserAgent.isNotBlank() -> s.customUserAgent
-            preset.ua != null -> preset.ua
+            !preset.ua.isNullOrBlank() -> preset.ua
             desktopMode -> DESKTOP_UA
             else -> WebSettings.getDefaultUserAgent(context).replace("; wv", ";") // 去 WebView 标记
         }

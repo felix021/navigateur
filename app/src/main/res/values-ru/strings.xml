@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">Свой…</string>
 
+    <string name="ua_presets_section">Пользовательские пресеты</string>
+    <string name="ua_presets_add">Добавить пресет</string>
+    <string name="ua_preset_edit">Изменить пресет</string>
+    <string name="ua_presets_empty">Пользовательских пресетов пока нет</string>
+    <string name="ua_custom_name">Свой</string>
+    <string name="ua_preset_ua_hint">Строка User-Agent этого пресета, применяется сразу</string>
+
     <!-- Настройки: главная страница -->
     <string name="settings_title">Настройки</string>
     <string name="section_general">Общие</string>

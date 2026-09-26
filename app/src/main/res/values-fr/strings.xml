@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">Personnalisé…</string>
 
+    <string name="ua_presets_section">Préréglages personnalisés</string>
+    <string name="ua_presets_add">Ajouter un préréglage</string>
+    <string name="ua_preset_edit">Modifier le préréglage</string>
+    <string name="ua_presets_empty">Aucun préréglage personnalisé</string>
+    <string name="ua_custom_name">Personnalisé</string>
+    <string name="ua_preset_ua_hint">Chaîne User-Agent de ce préréglage, appliquée immédiatement</string>
+
     <!-- Réglages : page principale -->
     <string name="settings_title">Réglages</string>
     <string name="section_general">Général</string>

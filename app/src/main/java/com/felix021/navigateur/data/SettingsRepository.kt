@@ -3,6 +3,9 @@ package com.felix021.navigateur.data
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
+import com.felix021.navigateur.R
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -12,9 +15,12 @@ data class BrowserSettings(
     val homepage: String = "about:home",
     val searchEngineId: String = "duckduckgo",
     val desktopModeDefault: Boolean = false,
-    /** UA 预设 id，见 UaPresets；custom 时使用 customUserAgent */
+    /** 当前选中 UA 预设 id（内置 id 或 customUas 里的 cus_*） */
     val uaPresetId: String = "default",
+    /** 旧版单一自定义 UA 槽位：仅迁移来源，不再读取 */
     val customUserAgent: String = "",
+    /** 用户自定义 UA 预设列表（多条命名，见 UaPreset） */
+    val customUas: List<UaPreset> = emptyList(),
     /** 空 = 跟随网站；否则为 CSS font-family 值（sans-serif / serif / monospace） */
     val fontFamily: String = "",
     /** 页面整体缩放百分比（CSS zoom，非仅字体），50–200 */
@@ -40,6 +46,7 @@ data class BrowserSettings(
 )
 
 class SettingsRepository(context: Context) {
+    private val appContext = context.applicationContext
     private val prefs: SharedPreferences =
         context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
@@ -83,7 +90,27 @@ class SettingsRepository(context: Context) {
         remoteDebug = prefs.getBoolean(KEY_REMOTE_DEBUG, false),
         devTools = prefs.getBoolean(KEY_DEVTOOLS, false),
         proxyJson = prefs.getString(KEY_PROXY, "") ?: "",
-    )
+        customUas = readCustomUas(),
+    ).let { migrateLegacyCustomUa(it) }
+
+    /** 旧版「单个自定义 UA」→ 生成一条命名预设并接管选中（幂等：迁移后 id 不再是 custom） */
+    private fun migrateLegacyCustomUa(s: BrowserSettings): BrowserSettings {
+        if (s.uaPresetId != UaPresets.CUSTOM || s.customUserAgent.isBlank()) return s
+        val legacy = UaPreset("cus_legacy", appContext.getString(R.string.ua_custom_name), s.customUserAgent)
+        return s.copy(customUas = s.customUas + legacy, uaPresetId = legacy.id)
+    }
+
+    private fun readCustomUas(): List<UaPreset> {
+        val json = prefs.getString(KEY_CUSTOM_UAS, "") ?: ""
+        if (json.isBlank()) return emptyList()
+        return runCatching {
+            val arr = JSONArray(json)
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                UaPreset(o.getString("id"), o.getString("label"), o.optString("ua", ""))
+            }
+        }.getOrDefault(emptyList())
+    }
 
     private fun persist(s: BrowserSettings) {
         prefs.edit()
@@ -92,6 +119,11 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_DESKTOP, s.desktopModeDefault)
             .putString(KEY_UA_PRESET, s.uaPresetId)
             .putString(KEY_UA, s.customUserAgent)
+            .putString(KEY_CUSTOM_UAS, JSONArray().apply {
+                s.customUas.forEach { p ->
+                    put(JSONObject().put("id", p.id).put("label", p.label).put("ua", p.ua ?: ""))
+                }
+            }.toString())
             .putString(KEY_FONT, s.fontFamily)
             .putInt(KEY_ZOOM, s.pageZoomPercent)
             .putString(KEY_THEME, s.themeMode.name)
@@ -130,6 +162,7 @@ class SettingsRepository(context: Context) {
         const val KEY_DESKTOP = "desktop_default"
         const val KEY_UA_PRESET = "ua_preset"
         const val KEY_UA = "custom_ua"
+        const val KEY_CUSTOM_UAS = "custom_ua_presets"
         const val KEY_FONT = "font_family"
         const val KEY_ZOOM = "text_zoom"
         const val KEY_THEME = "theme_mode"

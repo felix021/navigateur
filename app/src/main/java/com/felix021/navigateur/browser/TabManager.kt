@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.felix021.navigateur.AppContainer
 import com.felix021.navigateur.data.BrowserSettings
 import com.felix021.navigateur.data.ThemeMode
+import com.felix021.navigateur.data.resolveUa
 import com.felix021.navigateur.util.Downloader
 import com.felix021.navigateur.util.UrlUtils
 import java.util.UUID
@@ -417,7 +418,8 @@ class TabManager(
 
     private fun applySettings(s: BrowserSettings) {
         val dark = effectiveDark(s)
-        val uaKey = "${s.uaPresetId}|${s.customUserAgent}"
+        // key 取「选中预设解析出的 UA 字符串」：编辑选中预设的内容会触发刷新，改名不会
+        val uaKey = "${s.uaPresetId}|${s.resolveUa().ua}"
         val first = lastAppliedUa == null
         val uaChanged = !first && uaKey != lastAppliedUa
         val darkChanged = lastAppliedDark != null && dark != lastAppliedDark

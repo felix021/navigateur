@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">Benutzerdefiniert…</string>
 
+    <string name="ua_presets_section">Benutzerdefinierte Presets</string>
+    <string name="ua_presets_add">Preset hinzufügen</string>
+    <string name="ua_preset_edit">Preset bearbeiten</string>
+    <string name="ua_presets_empty">Noch keine benutzerdefinierten Presets</string>
+    <string name="ua_custom_name">Benutzerdefiniert</string>
+    <string name="ua_preset_ua_hint">User-Agent-String für diesen Preset, sofort wirksam</string>
+
     <!-- Einstellungen: Hauptseite -->
     <string name="settings_title">Einstellungen</string>
     <string name="section_general">Allgemein</string>

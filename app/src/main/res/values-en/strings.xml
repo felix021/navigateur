@@ -107,6 +107,13 @@
     <string name="ua_oppo">OPPO Find X7</string>
     <string name="ua_custom_entry">Custom…</string>
 
+    <string name="ua_presets_section">Custom presets</string>
+    <string name="ua_presets_add">Add preset</string>
+    <string name="ua_preset_edit">Edit preset</string>
+    <string name="ua_presets_empty">No custom presets yet</string>
+    <string name="ua_custom_name">Custom</string>
+    <string name="ua_preset_ua_hint">User-Agent string for this preset, applied immediately</string>
+
     <!-- Settings: main page -->
     <string name="settings_title">Settings</string>
     <string name="section_general">General</string>
