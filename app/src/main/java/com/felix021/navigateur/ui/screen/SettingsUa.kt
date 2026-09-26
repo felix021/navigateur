@@ -153,7 +153,7 @@ internal fun UaPresetEditDialog(
             )
         },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },

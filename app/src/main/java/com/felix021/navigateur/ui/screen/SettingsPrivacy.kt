@@ -98,11 +98,7 @@ private fun SiteClearDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.privacy_clear_site)) },
         text = {
-            Column(
-                Modifier
-                    .heightIn(max = 380.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
+            Column {
                 OutlinedTextField(
                     value = host,
                     onValueChange = { host = it.trim() },

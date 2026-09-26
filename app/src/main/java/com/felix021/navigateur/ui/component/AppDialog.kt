@@ -38,6 +38,9 @@ import kotlin.math.roundToInt
  *
  * text 槽自动套滚动：内容最多占屏幕 55%（SS 出口表单这类长表单一屏放不下时
  * 可上下滚动），右缘给一条细滚动条提示下面还有内容；内容不满一屏时不显示。
+ *
+ * 注意：**text 槽内不要再套 verticalScroll**——嵌套滚动会让内层拿到无限高约束
+ * 直接崩溃（IllegalStateException: infinity maximum height），滚动统一由外壳负责。
  */
 @Composable
 fun AppDialog(

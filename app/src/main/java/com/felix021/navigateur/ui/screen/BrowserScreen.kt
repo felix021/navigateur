@@ -665,7 +665,7 @@ private fun SiteInfoDialog(controller: BrowserController, onDismiss: () -> Unit)
         onDismissRequest = onDismiss,
         title = { Text(host.ifEmpty { stringResource(R.string.cert_title) }) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
+            Column {
                 Text(
                     url,
                     style = MaterialTheme.typography.bodySmall,
