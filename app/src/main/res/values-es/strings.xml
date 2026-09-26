@@ -69,6 +69,8 @@
     <string name="exit_confirm">Salir</string>
     <string name="cert_title">Información del certificado</string>
     <string name="cert_none">No hay certificado disponible (no es HTTPS o la página fue reemplazada)</string>
+    <string name="site_info_secure">HTTPS: conexión cifrada</string>
+    <string name="site_info_not_secure">Sin HTTPS: conexión sin cifrar</string>
     <string name="cert_issued_to">Emitido a</string>
     <string name="cert_issued_by">Emitido por</string>
     <string name="cert_valid_from">Válido desde</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">Xiaomi 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">Personalizado…</string>
 
     <string name="ua_presets_section">Perfiles personalizados</string>
     <string name="ua_presets_add">Añadir perfil</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">Modo escritorio por defecto</string>
     <string name="desktop_default_desc">Abrir pestañas nuevas con UA de escritorio (si el perfil de UA es Predeterminado)</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">User-Agent personalizado</string>
-    <string name="ua_custom_hint">Se aplica al instante y recarga las páginas abiertas; deje vacío para volver al predeterminado</string>
     <string name="entry_adblock">Bloqueo de anuncios</string>
     <string name="entry_proxy">Proxy</string>
     <string name="entry_developer">Desarrollador</string>

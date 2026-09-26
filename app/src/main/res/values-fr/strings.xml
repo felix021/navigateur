@@ -69,6 +69,8 @@
     <string name="exit_confirm">Quitter</string>
     <string name="cert_title">Certificat</string>
     <string name="cert_none">Aucun certificat disponible (non HTTPS, ou la page a été remplacée)</string>
+    <string name="site_info_secure">HTTPS : connexion chiffrée</string>
+    <string name="site_info_not_secure">Pas de HTTPS : connexion non chiffrée</string>
     <string name="cert_issued_to">Délivré à</string>
     <string name="cert_issued_by">Émis par</string>
     <string name="cert_valid_from">Valide du</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">Xiaomi 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">Personnalisé…</string>
 
     <string name="ua_presets_section">Préréglages personnalisés</string>
     <string name="ua_presets_add">Ajouter un préréglage</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">Mode bureau par défaut</string>
     <string name="desktop_default_desc">Ouvre les nouveaux onglets avec l\'UA bureau par défaut (si le pré-réglage UA est Par défaut)</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">User-Agent personnalisé</string>
-    <string name="ua_custom_hint">Prend effet immédiatement et actualise les pages ouvertes ; laissez vide pour revenir au défaut</string>
     <string name="entry_adblock">Bloqueur de pubs</string>
     <string name="entry_proxy">Proxy</string>
     <string name="entry_developer">Développeur</string>

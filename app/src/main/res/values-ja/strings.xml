@@ -69,6 +69,8 @@
     <string name="exit_confirm">終了</string>
     <string name="cert_title">証明書情報</string>
     <string name="cert_none">利用可能な証明書がありません（HTTPS 以外、またはページが差し替えられています）</string>
+    <string name="site_info_secure">HTTPS：接続は暗号化されています</string>
+    <string name="site_info_not_secure">HTTPS ではありません：接続は暗号化されていません</string>
     <string name="cert_issued_to">発行先</string>
     <string name="cert_issued_by">発行者</string>
     <string name="cert_valid_from">有効開始</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">Xiaomi 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">カスタム…</string>
 
     <string name="ua_presets_section">カスタムプリセット</string>
     <string name="ua_presets_add">プリセットを追加</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">デフォルトでデスクトップモード</string>
     <string name="desktop_default_desc">新しいタブをデスクトップ UA で開く（UA プリセットがデフォルトのとき有効）</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">カスタム User-Agent</string>
-    <string name="ua_custom_hint">すぐに反映され開いているページを再読み込みします。空でデフォルトに戻ります</string>
     <string name="entry_adblock">広告ブロック</string>
     <string name="entry_proxy">プロキシ</string>
     <string name="entry_developer">開発者</string>

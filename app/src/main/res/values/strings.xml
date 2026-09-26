@@ -69,6 +69,8 @@
     <string name="exit_confirm">退出</string>
     <string name="cert_title">证书信息</string>
     <string name="cert_none">当前页面没有可用证书（非 HTTPS，或页面已被替换）</string>
+    <string name="site_info_secure">连接已加密（HTTPS）</string>
+    <string name="site_info_not_secure">未使用 HTTPS，连接未加密</string>
     <string name="cert_issued_to">颁发给</string>
     <string name="cert_issued_by">颁发者</string>
     <string name="cert_valid_from">生效时间</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">小米 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">自定义…</string>
 
     <string name="ua_presets_section">自定义预设</string>
     <string name="ua_presets_add">添加预设</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">默认桌面模式</string>
     <string name="desktop_default_desc">新标签页默认以桌面 UA 打开（UA 预设为默认时生效）</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">自定义 User-Agent</string>
-    <string name="ua_custom_hint">保存后立即生效并刷新已打开页面；留空则回退默认</string>
     <string name="entry_adblock">广告拦截</string>
     <string name="entry_proxy">代理</string>
     <string name="entry_developer">开发者</string>

@@ -69,6 +69,8 @@
     <string name="exit_confirm">Exit</string>
     <string name="cert_title">Certificate</string>
     <string name="cert_none">No certificate available (not HTTPS, or the page was replaced)</string>
+    <string name="site_info_secure">HTTPS: connection encrypted</string>
+    <string name="site_info_not_secure">Not HTTPS: connection unencrypted</string>
     <string name="cert_issued_to">Issued to</string>
     <string name="cert_issued_by">Issued by</string>
     <string name="cert_valid_from">Valid from</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">Xiaomi 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">Custom…</string>
 
     <string name="ua_presets_section">Custom presets</string>
     <string name="ua_presets_add">Add preset</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">Desktop mode by default</string>
     <string name="desktop_default_desc">Open new tabs with the desktop UA by default (applies when the UA preset is Default)</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">Custom User-Agent</string>
-    <string name="ua_custom_hint">Takes effect immediately and refreshes open pages; leave empty to fall back to default</string>
     <string name="entry_adblock">Ad blocking</string>
     <string name="entry_proxy">Proxy</string>
     <string name="entry_developer">Developer</string>

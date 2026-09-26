@@ -77,6 +77,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
@@ -180,14 +185,46 @@ fun BrowserScreen(controller: BrowserController) {
         Color.White
     }
 
-    if (isLandscape) {
-        LandscapeBrowser(
-            controller, current, bookmarked, nav, tabs.size,
-            settings.landscapeToolbarSide, settings.landscapeFullscreen,
-            statusBg, statusFg,
-        )
-    } else {
-        PortraitBrowser(controller, current, bookmarked, nav, tabs.size)
+    // 竖屏地址栏（浮层）的可见区域：点区域外 = 退出地址栏编辑态
+    val omniboxBounds = remember { mutableStateOf<Rect?>(null) }
+    val focusManager = LocalFocusManager.current
+    Box(
+        Modifier
+            .fillMaxSize()
+            // Initial pass 观察手势（不消费，不影响 WebView / 按钮交互）：
+            // 在地址栏以外按下并抬手 = 点击了别处，退出地址栏编辑态。
+            // 判定放在抬手而不是按下：按下就清焦会让输入建议面板当帧消失、点击落空
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    var downPos: androidx.compose.ui.geometry.Offset? = null
+                    while (true) {
+                        val ev = awaitPointerEvent(PointerEventPass.Initial)
+                        val down = ev.changes.firstOrNull { it.pressed && !it.previousPressed }
+                        if (down != null) {
+                            downPos = down.position
+                            continue
+                        }
+                        val up = ev.changes.firstOrNull { !it.pressed && it.previousPressed }
+                        if (up != null && downPos != null) {
+                            val pos = downPos
+                            downPos = null
+                            if (omniboxBounds.value?.contains(pos) != true) {
+                                focusManager.clearFocus()
+                            }
+                        }
+                    }
+                }
+            },
+    ) {
+        if (isLandscape) {
+            LandscapeBrowser(
+                controller, current, bookmarked, nav, tabs.size,
+                settings.landscapeToolbarSide, settings.landscapeFullscreen,
+                statusBg, statusFg, omniboxBounds,
+            )
+        } else {
+            PortraitBrowser(controller, current, bookmarked, nav, tabs.size, omniboxBounds)
+        }
     }
 }
 
@@ -200,6 +237,7 @@ private fun PortraitBrowser(
     bookmarked: Boolean,
     nav: Pair<Boolean, Boolean>,
     tabCount: Int,
+    omniboxBounds: androidx.compose.runtime.MutableState<Rect?>,
 ) {
     Column(
         Modifier
@@ -212,6 +250,7 @@ private fun PortraitBrowser(
             onSubmit = { controller.loadOrSearch(it) },
             // 胶囊外形需要四周留白，避免通栏灰条贴边
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            onBounds = { omniboxBounds.value = it },
         )
         if (current?.loading == true) {
             LinearProgressIndicator(
@@ -239,15 +278,18 @@ private fun LandscapeBrowser(
     fullscreen: Boolean,
     statusBg: Color,
     statusFg: Color,
+    omniboxBounds: androidx.compose.runtime.MutableState<Rect?>,
 ) {
     var urlPanelOpen by remember { mutableStateOf(false) }
     var certOpen by remember { mutableStateOf(false) }
+    // 浮层地址栏关闭后没有可见地址栏，清掉 bounds（否则顶部区域会被误判为栏内）
+    LaunchedEffect(urlPanelOpen) { if (!urlPanelOpen) omniboxBounds.value = null }
     var menuOpen by remember { mutableStateOf(false) }
     var zoomOpen by remember { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
 
     if (certOpen) {
-        CertificateDialog(controller, onDismiss = { certOpen = false })
+        SiteInfoDialog(controller, onDismiss = { certOpen = false })
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -288,6 +330,7 @@ private fun LandscapeBrowser(
                                     urlPanelOpen = false
                                 },
                                 modifier = Modifier.weight(1f),
+                                onBounds = { omniboxBounds.value = it },
                             )
                             IconButton(onClick = {
                                 val url = current?.url.orEmpty()
@@ -605,22 +648,46 @@ private fun ExitConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-/** HTTPS 证书信息（来自当前 WebView 的主资源证书） */
+/** 站点信息：host / URL / 连接安全状态 + 证书详情（来自当前 WebView 主资源证书） */
 @Composable
-private fun CertificateDialog(controller: BrowserController, onDismiss: () -> Unit) {
+private fun SiteInfoDialog(controller: BrowserController, onDismiss: () -> Unit) {
     val cert: SslCertificate? = controller.tabManager.currentWebView?.certificate
+    val url = controller.tabManager.current?.url.orEmpty()
+    val host = UrlUtils.hostOf(url).ifEmpty { url }
+    val secure = url.startsWith("https://")
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.cert_title)) },
+        title = { Text(host.ifEmpty { stringResource(R.string.cert_title) }) },
         text = {
-            if (cert == null) {
-                Text(stringResource(R.string.cert_none))
-            } else {
-                Column {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    url,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(
+                        if (secure) R.string.site_info_secure else R.string.site_info_not_secure,
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (secure) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(8.dp))
+                if (cert != null) {
                     CertRow(stringResource(R.string.cert_issued_to), cert.issuedTo.toString())
                     CertRow(stringResource(R.string.cert_issued_by), cert.issuedBy.toString())
                     CertRow(stringResource(R.string.cert_valid_from), formatTime(cert.validNotBeforeDate))
                     CertRow(stringResource(R.string.cert_valid_to), formatTime(cert.validNotAfterDate))
+                } else {
+                    Text(
+                        stringResource(R.string.cert_none),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         },
@@ -651,8 +718,10 @@ private fun Omnibox(
     url: String,
     onSubmit: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onBounds: ((Rect) -> Unit)? = null,
 ) {
     var value by remember { mutableStateOf(TextFieldValue("")) }
+    var showSiteInfo by remember { mutableStateOf(false) }
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val focusManager = LocalFocusManager.current
@@ -683,7 +752,16 @@ private fun Omnibox(
         (bm + hi).distinctBy { it.url }.take(6)
     } else emptyList()
 
-    Box(modifier) {
+    Box(
+        modifier.then(
+            if (onBounds != null) {
+                Modifier.onGloballyPositioned { onBounds(it.boundsInRoot()) }
+            } else Modifier,
+        ),
+    ) {
+        if (showSiteInfo) {
+            SiteInfoDialog(controller, onDismiss = { showSiteInfo = false })
+        }
         // 输入建议面板，浮在页面内容之上
         if (suggestions.isNotEmpty()) {
             Surface(
@@ -760,16 +838,25 @@ private fun Omnibox(
                 ),
                 decorationBox = { inner ->
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                        Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            if (!focused && url.startsWith("https://")) Icons.Filled.Lock else Icons.Filled.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(10.dp))
+                        // 站点信息入口：点击只弹信息，不进入编辑态
+                        IconButton(
+                            onClick = {
+                                focusManager.clearFocus()
+                                showSiteInfo = true
+                            },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                if (!focused && url.startsWith("https://")) Icons.Filled.Lock
+                                else Icons.Filled.Search,
+                                contentDescription = stringResource(R.string.cd_certificate),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                         Box(Modifier.weight(1f)) {
                             if (value.text.isEmpty()) {
                                 Text(

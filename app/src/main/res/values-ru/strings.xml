@@ -69,6 +69,8 @@
     <string name="exit_confirm">Выйти</string>
     <string name="cert_title">Сертификат</string>
     <string name="cert_none">Сертификат недоступен (не HTTPS или страница была заменена)</string>
+    <string name="site_info_secure">HTTPS: соединение зашифровано</string>
+    <string name="site_info_not_secure">Не HTTPS: соединение не зашифровано</string>
     <string name="cert_issued_to">Кому выдан</string>
     <string name="cert_issued_by">Кем выдан</string>
     <string name="cert_valid_from">Действителен с</string>
@@ -105,7 +107,6 @@
     <string name="ua_xiaomi">Xiaomi 14</string>
     <string name="ua_vivo">vivo X100</string>
     <string name="ua_oppo">OPPO Find X7</string>
-    <string name="ua_custom_entry">Свой…</string>
 
     <string name="ua_presets_section">Пользовательские пресеты</string>
     <string name="ua_presets_add">Добавить пресет</string>
@@ -146,8 +147,6 @@
     <string name="settings_desktop_default">Режим компьютера по умолчанию</string>
     <string name="desktop_default_desc">Открывать новые вкладки с компьютерным UA (когда пресет UA — По умолчанию)</string>
     <string name="settings_ua">User-Agent</string>
-    <string name="ua_custom_title">Свой User-Agent</string>
-    <string name="ua_custom_hint">Применяется сразу и обновляет открытые страницы; пусто — вернуться к значению по умолчанию</string>
     <string name="entry_adblock">Блокировка рекламы</string>
     <string name="entry_proxy">Прокси</string>
     <string name="entry_developer">Разработчик</string>
