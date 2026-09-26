@@ -83,6 +83,11 @@ internal val SETTINGS_ENTRIES: List<SearchEntry> = listOf(
     // 开发者页
     SearchEntry("d.remote", R.string.dev_remote_title, "电脑经 adb 用 Chrome DevTools 调试", listOf("远程调试", "remote", "chrome://inspect", "cdp", "adb", "devtools", "电脑调试"), SubPage.Developer),
     SearchEntry("d.eruda", R.string.dev_eruda_title, "手机页面内 Console / Elements / Network", listOf("eruda", "console", "elements", "network", "storage", "页面内", "调试工具", "查看源码"), SubPage.Developer),
+    // 关于页
+    SearchEntry("s.about", R.string.entry_about, "版本号、GitHub 仓库、隐私说明与开源组件", listOf("关于", "about", "版本", "version", "开源", "协议", "license", "github", "作者", "致谢"), null),
+    SearchEntry("about.github", R.string.about_github, "项目源码仓库地址", listOf("github", "仓库", "源码", "代码", "repository", "开源地址"), SubPage.About),
+    SearchEntry("about.privacy", R.string.about_privacy_title, "数据存哪里、会不会上传", listOf("隐私政策", "privacy policy", "数据收集", "不上传", "泄露", "tracking", "数据"), SubPage.About),
+    SearchEntry("about.licenses", R.string.about_licenses_title, "引用的开源库与许可证", listOf("开源许可", "license", "third party", "依赖", "致谢", "oss", "协议", "gpl"), SubPage.About),
     // 隐私页
     SearchEntry("pv.clear_all", R.string.privacy_clear_all, "一次性清除 Cookie / 存储 / 缓存 / 历史 / 密码", listOf("清理", "缓存", "cache", "cookie", "历史", "密码", "表单", "form", "全部清除", "clear data"), SubPage.Privacy),
     SearchEntry("pv.clear_site", R.string.privacy_clear_site, "只清除某个站点的数据", listOf("按站点", "单个网站", "site", "域名清理", "host", "指定站点"), SubPage.Privacy),

@@ -230,4 +230,14 @@
     <string name="clear_data_cache">キャッシュ</string>
     <string name="clear_data_form">フォームデータ</string>
     <string name="clear_data_history">閲覧履歴</string>
+
+    <!-- About -->
+    <string name="entry_about">アプリ情報</string>
+    <string name="about_version">バージョン %1$s</string>
+    <string name="about_github">GitHub リポジトリ</string>
+    <string name="about_privacy_title">プライバシー</string>
+    <string name="about_privacy_body">すべてのデータは端末内にのみ保存されます：設定・ブックマーク・履歴はローカル、保存パスワードは Android Keystore で暗号化。アカウント・統計・送信は一切ありません。通信が発生するのは：ページの閲覧、広告ブロック規則（EasyList）のオンライン更新、設定したプロキシ規則リストのダウンロードのみ。</string>
+    <string name="about_licenses_title">オープンソースコンポーネント</string>
+    <string name="about_license_notice">本アプリは以下のオープンソースコンポーネントを使用しています。タップでライセンスまたはプロジェクトページを開きます：</string>
+    <string name="about_easylist_notice">同梱の EasyList / EasyList China 規則は The EasyList authors が维护するもので、GPL-3.0 と CC BY-SA 3.0 のデュアルライセンスです。</string>
 </resources>

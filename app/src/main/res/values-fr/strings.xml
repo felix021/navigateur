@@ -230,4 +230,14 @@
     <string name="clear_data_cache">Cache</string>
     <string name="clear_data_form">Données de formulaire</string>
     <string name="clear_data_history">Historique de navigation</string>
+
+    <!-- About -->
+    <string name="entry_about">À propos</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_github">Dépôt GitHub</string>
+    <string name="about_privacy_title">Confidentialité</string>
+    <string name="about_privacy_body">Toutes les données restent sur cet appareil : réglages, favoris et historique stockés localement, mots de passe enregistrés chiffrés avec Android Keystore. Pas de compte, pas de statistiques, aucun envoi. Le réseau ne sert qu\'à : consulter les pages, mettre à jour les règles de blocage (EasyList) en ligne et télécharger les listes de règles proxy que vous configurez.</string>
+    <string name="about_licenses_title">Composants open source</string>
+    <string name="about_license_notice">Cette application utilise les composants open source suivants. Touchez pour voir la licence ou la page du projet :</string>
+    <string name="about_easylist_notice">Les filtres EasyList / EasyList China intégrés sont maintenus par les auteurs d\'EasyList et publiés sous licence double GPL-3.0 et CC BY-SA 3.0.</string>
 </resources>

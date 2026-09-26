@@ -81,11 +81,13 @@ internal enum class SubPage(@androidx.annotation.StringRes val titleRes: Int) {
     Proxy(R.string.entry_proxy),
     Developer(R.string.entry_developer),
     Privacy(R.string.entry_privacy),
+    About(R.string.entry_about),
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(controller: BrowserController) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val settings by controller.container.settings.settings.collectAsState()
     var sub by remember { mutableStateOf<SubPage?>(null) }
     val nav = remember { SettingsNav() }
@@ -100,6 +102,7 @@ fun SettingsScreen(controller: BrowserController) {
                 SubPage.Proxy -> ProxySettingsPage(controller) { sub = null }
                 SubPage.Developer -> DeveloperSettingsPage(controller) { sub = null }
                 SubPage.Privacy -> PrivacySettingsPage(controller) { sub = null }
+                SubPage.About -> AboutSettingsPage(controller) { sub = null }
             }
         }
         return
@@ -263,6 +266,11 @@ fun SettingsScreen(controller: BrowserController) {
                 entryId = "s.privacy",
                 value = stringResource(R.string.privacy_summary),
             ) { sub = SubPage.Privacy }
+            SettingItem(
+                title = stringResource(R.string.entry_about),
+                value = aboutVersion(context),
+                entryId = "s.about",
+            ) { sub = SubPage.About }
 
             Spacer(Modifier.height(32.dp))
             }
@@ -404,6 +412,13 @@ internal fun SubPageScaffold(title: String, onBack: () -> Unit, content: @Compos
             )
         },
     ) { pad -> content(pad) }
+}
+
+/** 关于页入口摘要：v<versionName>（读失败显示空） */
+@Composable
+internal fun aboutVersion(context: android.content.Context): String = remember(context) {
+    runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+        .getOrNull()?.let { "v$it" }.orEmpty()
 }
 
 @Composable

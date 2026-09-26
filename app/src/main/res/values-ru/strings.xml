@@ -230,4 +230,14 @@
     <string name="clear_data_cache">Кэш</string>
     <string name="clear_data_form">Данные форм</string>
     <string name="clear_data_history">История просмотра</string>
+
+    <!-- About -->
+    <string name="entry_about">О проекте</string>
+    <string name="about_version">Версия %1$s</string>
+    <string name="about_github">Репозиторий GitHub</string>
+    <string name="about_privacy_title">Конфиденциальность</string>
+    <string name="about_privacy_body">Все данные хранятся только на этом устройстве: настройки, закладки и история — локально, сохранённые пароли зашифрованы через Android Keystore. Без аккаунтов, без аналитики, без отправки данных. Сеть используется только для: просмотра страниц, онлайн-обновления правил блокировки рекламы (EasyList) и загрузки списков правил прокси, которые вы настраиваете.</string>
+    <string name="about_licenses_title">Открытые компоненты</string>
+    <string name="about_license_notice">Приложение использует следующие компоненты с открытым исходным кодом. Нажмите, чтобы открыть лицензию или страницу проекта:</string>
+    <string name="about_easylist_notice">Встроенные фильтры EasyList / EasyList China поддерживаются авторами EasyList и распространяются по двойной лицензии GPL-3.0 и CC BY-SA 3.0.</string>
 </resources>

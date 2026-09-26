@@ -230,4 +230,14 @@
     <string name="clear_data_cache">Caché</string>
     <string name="clear_data_form">Datos de formulario</string>
     <string name="clear_data_history">Historial de navegación</string>
+
+    <!-- About -->
+    <string name="entry_about">Acerca de</string>
+    <string name="about_version">Versión %1$s</string>
+    <string name="about_github">Repositorio de GitHub</string>
+    <string name="about_privacy_title">Privacidad</string>
+    <string name="about_privacy_body">Todos los datos permanecen en este dispositivo: ajustes, marcadores e historial en local, contraseñas guardadas cifradas con Android Keystore. Sin cuentas, sin analítica, sin envíos. La red se usa solo para: navegar páginas, actualizar en línea las reglas de bloqueo de anuncios (EasyList) y descargar las listas de reglas de proxy que usted configure.</string>
+    <string name="about_licenses_title">Componentes de código abierto</string>
+    <string name="about_license_notice">Esta aplicación usa los siguientes componentes de código abierto. Toque para ver la licencia o la página del proyecto:</string>
+    <string name="about_easylist_notice">Los filtros incluidos EasyList / EasyList China los mantienen los autores de EasyList y se publican bajo licencia dual GPL-3.0 y CC BY-SA 3.0.</string>
 </resources>

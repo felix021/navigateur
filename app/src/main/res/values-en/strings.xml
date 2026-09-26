@@ -230,4 +230,14 @@
     <string name="clear_data_cache">Cache</string>
     <string name="clear_data_form">Form data</string>
     <string name="clear_data_history">Browsing history</string>
+
+    <!-- About -->
+    <string name="entry_about">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_github">GitHub repository</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_body">All data stays on this device: settings, bookmarks and history are stored locally, saved passwords are encrypted with the Android Keystore. No accounts, no analytics, no uploads. The network is used only for: browsing pages, updating ad-block rules (EasyList) online, and downloading proxy rule lists you configure.</string>
+    <string name="about_licenses_title">Open-source components</string>
+    <string name="about_license_notice">This app uses the following open-source components. Tap to view their license or project page:</string>
+    <string name="about_easylist_notice">The bundled EasyList / EasyList China filters are maintained by The EasyList authors and dual-licensed under GPL-3.0 and CC BY-SA 3.0.</string>
 </resources>

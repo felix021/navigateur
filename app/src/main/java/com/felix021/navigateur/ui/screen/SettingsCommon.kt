@@ -73,15 +73,17 @@ internal fun SettingsItemShell(entryId: String?, content: @Composable () -> Unit
     ) { content() }
 }
 
-/** 设置项分组标题 */
+/** 设置项分组标题（带 entryId 时可被搜索跳转定位并呼吸灯提示） */
 @Composable
-internal fun SectionHeader(title: String) {
-    Text(
-        title,
-        Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, bottom = 4.dp),
-        color = MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.titleSmall,
-    )
+internal fun SectionHeader(title: String, entryId: String? = null) {
+    SettingsItemShell(entryId) {
+        Text(
+            title,
+            Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, bottom = 4.dp),
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleSmall,
+        )
+    }
 }
 
 /** 可点击设置项：标题 + 摘要 + 右箭头 */
