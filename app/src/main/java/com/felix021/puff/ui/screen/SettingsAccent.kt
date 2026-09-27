@@ -22,11 +22,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,12 +41,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.felix021.puff.R
 import com.felix021.puff.ui.ACCENTS
@@ -165,33 +171,39 @@ internal fun AccentDialog(
                             onValueChangeFinished = { onSelect("custom", selHue) },
                             valueRange = 0f..360f,
                             modifier = Modifier.matchParentSize(),
-                            thumb = { TriangleThumb() },
+                            thumb = { TriangleThumb(Color.hsl(selHue, 0.62f, 0.45f)) },
                             colors = SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.surface,
                                 activeTrackColor = Color.Transparent,
                                 inactiveTrackColor = Color.Transparent,
                             ),
                         )
                     }
                     Spacer(Modifier.height(10.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    // 色值直输：#RRGGBB，解析成功即取其色相并联动滑块
+                    var hexText by remember { mutableStateOf(hexOf(Color.hsl(selHue, 0.62f, 0.45f))) }
+                    LaunchedEffect(selHue) { hexText = hexOf(Color.hsl(selHue, 0.62f, 0.45f)) }
+                    OutlinedTextField(
+                        value = hexText,
+                        onValueChange = { v ->
+                            val cleaned = v.filter { it == '#' || it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }.take(7)
+                            hexText = cleaned
+                            parseHexHue(cleaned)?.let { h ->
+                                selHue = h
+                                onSelect("custom", h)
+                            }
+                        },
+                        singleLine = true,
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                        modifier = Modifier.width(160.dp),
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(R.string.accent_custom_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Box(
-                            Modifier
-                                .size(30.dp)
-                                .clip(CircleShape)
-                                .background(preview)
-                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            stringResource(R.string.accent_custom_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    )
                 }
             }
         },
@@ -233,26 +245,71 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** 双三角 thumb：上倒三角、下正三角夹住轨道，中间露出轨道颜色精确定位色相 */
+/** 双三角 thumb：上倒三角、下正三角夹住轨道，中间露出轨道颜色；填充色=当前色相 */
 @Composable
-private fun TriangleThumb() {
-    val fill = MaterialTheme.colorScheme.onSurface
+private fun TriangleThumb(color: Color) {
     Box(
         Modifier
-            .size(width = 20.dp, height = 32.dp)
+            .size(width = 28.dp, height = 40.dp)
             .drawBehind {
                 val w = size.width
-                val capH = w * 0.5f
-                val path = Path()
-                path.moveTo(0f, 0f)
-                path.lineTo(w, 0f)
-                path.lineTo(w / 2f, capH)
-                path.close()
-                path.moveTo(0f, size.height)
-                path.lineTo(w, size.height)
-                path.lineTo(w / 2f, size.height - capH)
-                path.close()
-                drawPath(path, color = fill)
+                val capH = w * 0.46f
+                val r = w * 0.22f
+                drawPath(
+                    roundedTriangle(
+                        listOf(Offset(0f, 0f), Offset(w, 0f), Offset(w / 2f, capH)), r,
+                    ), color,
+                )
+                drawPath(
+                    roundedTriangle(
+                        listOf(
+                            Offset(0f, size.height), Offset(w, size.height),
+                            Offset(w / 2f, size.height - capH),
+                        ), r,
+                    ), color,
+                )
             },
     )
+}
+
+/** 顶点圆角化的三角形路径：每个顶点用二次贝塞尔切出圆弧 */
+private fun roundedTriangle(pts: List<Offset>, r: Float): Path {
+    val path = Path()
+    val n = pts.size
+    for (i in 0 until n) {
+        val prev = pts[(i + n - 1) % n]
+        val cur = pts[i]
+        val next = pts[(i + 1) % n]
+        val in1 = (prev - cur)
+        val in2 = (next - cur)
+        val p1 = cur + in1 * (r / in1.getDistance())
+        val p2 = cur + in2 * (r / in2.getDistance())
+        if (i == 0) path.moveTo(p1.x, p1.y) else path.lineTo(p1.x, p1.y)
+        path.quadraticBezierTo(cur.x, cur.y, p2.x, p2.y)
+    }
+    path.close()
+    return path
+}
+
+/** ARGB → "#RRGGBB" */
+private fun hexOf(c: Color): String = "#%06X".format(c.toArgb() and 0xFFFFFF)
+
+/** "#RRGGBB" → 色相（0..360）；格式不合法返回 null。饱和度/亮度固定由色板决定 */
+private fun parseHexHue(s: String): Float? {
+    val t = s.removePrefix("#")
+    if (t.length != 6) return null
+    val rgb = t.toIntOrNull(16) ?: return null
+    val r = (rgb shr 16 and 0xFF) / 255f
+    val g = (rgb shr 8 and 0xFF) / 255f
+    val b = (rgb and 0xFF) / 255f
+    val mx = maxOf(r, g, b)
+    val mn = minOf(r, g, b)
+    val d = mx - mn
+    if (d == 0f) return 0f
+    val h = when (mx) {
+        r -> ((g - b) / d).mod(6f)
+        g -> (b - r) / d + 2f
+        else -> (r - g) / d + 4f
+    } * 60f
+    return if (h >= 360f) 0f else h
 }
