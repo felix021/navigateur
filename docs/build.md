@@ -28,10 +28,11 @@ GitHub 仓库 `puff-browser/puff-browser`（公开，org 仓），release APK �
 
 一条命令：`./scripts/release.sh <version>`（如 `1.0.1`），它会依次：
 
+0. 前置强约束：工作区必须干净，否则直接拦截退出
 1. 写版本号（versionCode = major×10000+minor×100+patch，versionName = 入参）
-2. `clean assembleRelease` + aapt 校验包名/版本
-3. 真机 smoke（装→启动→起始页渲染→卸载，不影响设备上的 dev 包）
+2. `clean assembleRelease` + aapt **强断言**：包名必须恰好是 `com.felix021.puff`（带 `.dev` 等后缀的包直接拦截）、versionCode/versionName 与入参一致——防止把 debug 包当正式包发出去、或版本没生效发了旧包
+3. 真机 smoke（装→启动→起始页渲染→卸载，不影响设备上的 dev 包）；多台设备在线时用 `ADB_TARGET=<serial>` 指定目标，否则拦截
 4. 提交版本号、打 tag `v<version>`、推 main 与 tag
-5. `gh release create` 上传 `puff-nav-v<version>.apk`，notes 用 `--generate-notes` 后在网页上补改
+5. `gh release create` 上传 `puff-nav-v<version>.apk`（第 2 步校验过的同一个 APK，拷贝后再 `cmp` 比对），notes 用 `--generate-notes` 后在网页上补改
 
 手动场景（脚本不可用时）按同样顺序执行即可；要点：**smoke 不过不发包，tag 必须与发布 APK 同一 commit**。
