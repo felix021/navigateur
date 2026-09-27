@@ -132,24 +132,41 @@ fun BrowserScreen(controller: BrowserController) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     // 横屏默认全屏：隐藏状态栏 + 手势指示条（底部安全区开关打开时保留导航条）。
-    // 部分 ROM 会在窗口焦点变化后恢复系统栏，ON_RESUME 时重放
+    // 部分 ROM（小米平板等）会在窗口焦点变化后恢复系统栏，ON_RESUME / 焦点获得时重放；
+    // 还有的会直接吞掉首次 hide，延迟实测仍可见就补一刀
     DisposableEffect(isLandscape, settings.landscapeFullscreen, settings.landscapeBottomSafeArea) {
         val activity = controller.activity
         val window = activity.window
-        val insetsCtrl = WindowCompat.getInsetsController(window, window.decorView)
+        val decor = window.decorView
+        val insetsCtrl = WindowCompat.getInsetsController(window, decor)
+        val statusBars = WindowInsetsCompat.Type.statusBars()
+        val navBars = WindowInsetsCompat.Type.navigationBars()
+        val retryHide = Runnable {
+            if (!isLandscape || !settings.landscapeFullscreen) return@Runnable
+            val insets = WindowInsetsCompat.toWindowInsetsCompat(decor.rootWindowInsets)
+            if (insets.getInsets(statusBars).top > 0 || insets.isVisible(statusBars)) {
+                insetsCtrl.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsCtrl.hide(statusBars)
+                if (!settings.landscapeBottomSafeArea) insetsCtrl.hide(navBars)
+            }
+        }
         fun applyInsets() {
             if (isLandscape && settings.landscapeFullscreen) {
                 insetsCtrl.systemBarsBehavior =
                     WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                insetsCtrl.hide(WindowInsetsCompat.Type.statusBars())
+                insetsCtrl.hide(statusBars)
                 if (settings.landscapeBottomSafeArea) {
-                    insetsCtrl.show(WindowInsetsCompat.Type.navigationBars())
+                    insetsCtrl.show(navBars)
                 } else {
-                    insetsCtrl.hide(WindowInsetsCompat.Type.navigationBars())
+                    insetsCtrl.hide(navBars)
                 }
+                decor.removeCallbacks(retryHide)
+                decor.postDelayed(retryHide, 600)
             } else {
-                insetsCtrl.show(WindowInsetsCompat.Type.statusBars())
-                insetsCtrl.show(WindowInsetsCompat.Type.navigationBars())
+                decor.removeCallbacks(retryHide)
+                insetsCtrl.show(statusBars)
+                insetsCtrl.show(navBars)
             }
         }
         applyInsets()
@@ -157,7 +174,16 @@ fun BrowserScreen(controller: BrowserController) {
             if (event == Lifecycle.Event.ON_RESUME) applyInsets()
         }
         activity.lifecycle.addObserver(observer)
-        onDispose { activity.lifecycle.removeObserver(observer) }
+        // ROM 恢复系统栏最常发生在窗口焦点变化后，焦点回到窗口时重放一次
+        val focusListener = android.view.ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+            if (hasFocus) applyInsets()
+        }
+        decor.viewTreeObserver.addOnWindowFocusChangeListener(focusListener)
+        onDispose {
+            activity.lifecycle.removeObserver(observer)
+            decor.viewTreeObserver.removeOnWindowFocusChangeListener(focusListener)
+            decor.removeCallbacks(retryHide)
+        }
     }
 
     // 返回键始终接管：有页面历史则后退，否则询问退出

@@ -157,7 +157,7 @@
     <string name="landscape_left">Gauche</string>
     <string name="landscape_right">Droite</string>
     <string name="settings_landscape_fullscreen">Paysage plein écran</string>
-    <string name="landscape_fullscreen_desc">Masque la barre d\'état en paysage pour utiliser toute la hauteur de l\'écran</string>
+    <string name="landscape_fullscreen_desc">Masque la barre d\'état en paysage pour utiliser toute la hauteur de l\'écran. Si la tablette garde la barre visible et masque le contenu, désactivez cette option</string>
     <string name="settings_landscape_safe_area">Zone de sécurité basse en paysage</string>
     <string name="landscape_safe_area_desc">Affiche la barre de gestes et l\'évite ; désactivez pour un vrai plein écran (les infos d\'état dessinées restent)</string>
     <string name="settings_desktop_default">Mode bureau par défaut</string>

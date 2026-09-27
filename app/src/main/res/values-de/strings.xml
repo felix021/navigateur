@@ -157,7 +157,7 @@
     <string name="landscape_left">Links</string>
     <string name="landscape_right">Rechts</string>
     <string name="settings_landscape_fullscreen">Querformat-Vollbild</string>
-    <string name="landscape_fullscreen_desc">Statusleiste im Querformat ausblenden und die volle Bildschirmhöhe nutzen</string>
+    <string name="landscape_fullscreen_desc">Statusleiste im Querformat ausblenden und die volle Bildschirmhöhe nutzen. Bleibt die Statusleiste sichtbar und verdeckt Inhalte, deaktiviere diese Option</string>
     <string name="settings_landscape_safe_area">Sicherer Bereich unten (Querformat)</string>
     <string name="landscape_safe_area_desc">System-Gestenleiste anzeigen und umgehen; aus für echtes Vollbild (eigene Statusinfo bleibt)</string>
     <string name="settings_desktop_default">Desktop-Modus als Standard</string>

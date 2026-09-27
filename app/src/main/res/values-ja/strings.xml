@@ -157,7 +157,7 @@
     <string name="landscape_left">左</string>
     <string name="landscape_right">右</string>
     <string name="settings_landscape_fullscreen">横画面フルスクリーン</string>
-    <string name="landscape_fullscreen_desc">横画面でステータスバーを隠し、画面全体の高さを使います</string>
+    <string name="landscape_fullscreen_desc">横画面でステータスバーを隠し、画面全体の高さを使います。タブレットがステータスバーを表示し続けて内容を隠す場合はオフにしてください</string>
     <string name="settings_landscape_safe_area">横画面ボトムセーフエリア</string>
     <string name="landscape_safe_area_desc">ジェスチャーバーを表示して回避。オフにすると完全フルスクリーン（自前ステータスは残ります）</string>
     <string name="settings_desktop_default">デフォルトでデスクトップモード</string>

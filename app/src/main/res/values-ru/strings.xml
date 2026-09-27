@@ -157,7 +157,7 @@
     <string name="landscape_left">Слева</string>
     <string name="landscape_right">Справа</string>
     <string name="settings_landscape_fullscreen">Полный экран в альбомной</string>
-    <string name="landscape_fullscreen_desc">Скрывать строку состояния в альбомной ориентации, использовать всю высоту экрана</string>
+    <string name="landscape_fullscreen_desc">Скрывать строку состояния в альбомной ориентации, использовать всю высоту экрана. Если планшет оставляет строку состояния видимой и перекрывает контент, отключите эту опцию</string>
     <string name="settings_landscape_safe_area">Нижняя безопасная зона (альбомная)</string>
     <string name="landscape_safe_area_desc">Показывать системную панель жестов и обходить её; выкл. — истинный полный экран (собственная строка состояния остаётся)</string>
     <string name="settings_desktop_default">Режим компьютера по умолчанию</string>

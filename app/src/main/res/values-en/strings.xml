@@ -159,7 +159,7 @@
     <string name="landscape_left">Left</string>
     <string name="landscape_right">Right</string>
     <string name="settings_landscape_fullscreen">Landscape fullscreen</string>
-    <string name="landscape_fullscreen_desc">Hide the status bar in landscape to use the full screen height</string>
+    <string name="landscape_fullscreen_desc">Hide the status bar in landscape to use the full screen height. If the tablet keeps the status bar visible and covers content, turn this off</string>
     <string name="settings_landscape_safe_area">Landscape bottom safe area</string>
     <string name="landscape_safe_area_desc">Show the system gesture bar and avoid it; turn off for true fullscreen (self-drawn status info remains)</string>
     <string name="settings_desktop_default">Desktop mode by default</string>

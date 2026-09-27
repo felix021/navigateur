@@ -159,7 +159,7 @@
     <string name="landscape_left">左手边</string>
     <string name="landscape_right">右手边</string>
     <string name="settings_landscape_fullscreen">横屏全屏</string>
-    <string name="landscape_fullscreen_desc">横屏时隐藏系统状态栏，充分利用屏幕高度</string>
+    <string name="landscape_fullscreen_desc">横屏时隐藏系统状态栏，充分利用屏幕高度；若平板强制保留状态栏、内容被遮挡，可关闭此项</string>
     <string name="settings_landscape_safe_area">横屏底部安全区</string>
     <string name="landscape_safe_area_desc">显示系统手势条并避让；关闭则完全全屏（自绘状态信息仍在）</string>
     <string name="settings_desktop_default">默认桌面模式</string>

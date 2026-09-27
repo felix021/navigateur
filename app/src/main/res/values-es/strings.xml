@@ -157,7 +157,7 @@
     <string name="landscape_left">Izquierda</string>
     <string name="landscape_right">Derecha</string>
     <string name="settings_landscape_fullscreen">Apaisado a pantalla completa</string>
-    <string name="landscape_fullscreen_desc">Ocultar la barra de estado en apaisado para usar toda la altura de la pantalla</string>
+    <string name="landscape_fullscreen_desc">Ocultar la barra de estado en apaisado para usar toda la altura de la pantalla. Si la tableta mantiene la barra visible y tapa el contenido, desactiva esta opción</string>
     <string name="settings_landscape_safe_area">Zona segura inferior apaisada</string>
     <string name="landscape_safe_area_desc">Mostrar la barra de gestos del sistema y evitarla; desactívelo para pantalla completa real (la info dibujada permanece)</string>
     <string name="settings_desktop_default">Modo escritorio por defecto</string>
