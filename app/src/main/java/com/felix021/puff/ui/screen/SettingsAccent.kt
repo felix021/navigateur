@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.felix021.puff.ui.screen
 
 import androidx.compose.foundation.background
@@ -34,9 +36,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -160,6 +165,7 @@ internal fun AccentDialog(
                             onValueChangeFinished = { onSelect("custom", selHue) },
                             valueRange = 0f..360f,
                             modifier = Modifier.matchParentSize(),
+                            thumb = { TriangleThumb() },
                             colors = SliderDefaults.colors(
                                 thumbColor = MaterialTheme.colorScheme.surface,
                                 activeTrackColor = Color.Transparent,
@@ -225,4 +231,28 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
             )
         }
     }
+}
+
+/** 双三角 thumb：上倒三角、下正三角夹住轨道，中间露出轨道颜色精确定位色相 */
+@Composable
+private fun TriangleThumb() {
+    val fill = MaterialTheme.colorScheme.onSurface
+    Box(
+        Modifier
+            .size(width = 20.dp, height = 32.dp)
+            .drawBehind {
+                val w = size.width
+                val capH = w * 0.5f
+                val path = Path()
+                path.moveTo(0f, 0f)
+                path.lineTo(w, 0f)
+                path.lineTo(w / 2f, capH)
+                path.close()
+                path.moveTo(0f, size.height)
+                path.lineTo(w, size.height)
+                path.lineTo(w / 2f, size.height - capH)
+                path.close()
+                drawPath(path, color = fill)
+            },
+    )
 }
