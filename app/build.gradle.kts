@@ -17,6 +17,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 调试包独立包名 + 桌面名 dev 后缀，与正式版并存互不影响
+            applicationIdSuffix = ".dev"
+        }
         release {
             isMinifyEnabled = false
             // 个人应用：release 用 debug 签名，便于直接分发安装
