@@ -1,6 +1,7 @@
 package com.felix021.puff.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,7 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -69,9 +74,7 @@ internal fun AccentDialog(
                 Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // swatch 行：6 预设 + 自定义
-                // 7 个圆点必须放进对话框 248dp 内容宽：30dp + 6dp 间距 = 246dp。
-                // 之前的 34dp + 10dp = 298dp 溢出，末尾的圆点被压缩成竖条。
+                // 预设色板：6 色块一行（6×34dp + 5×6dp = 234dp ≤ 248dp 内容宽）
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -88,31 +91,83 @@ internal fun AccentDialog(
                             },
                         )
                     }
-                    Swatch(
-                        color = if (isCustom) preview else Color.hsl(selHue, 0.62f, 0.45f),
-                        selected = isCustom,
-                        onClick = {
-                            selKey = "custom"
-                            onSelect("custom", selHue)
-                        },
-                    )
                 }
 
                 Spacer(Modifier.height(10.dp))
-                Text(
-                    stringResource(labelRes),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (!isCustom) {
+                    Text(
+                        stringResource(labelRes),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(Modifier.height(6.dp))
+                // 自定义独立成行（带文字说明），不混在色块里
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            selKey = "custom"
+                            onSelect("custom", selHue)
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Box(
+                        Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(if (isCustom) preview else Color.hsl(selHue, 0.62f, 0.45f))
+                            .border(
+                                width = if (isCustom) 2.dp else 1.dp,
+                                color = if (isCustom) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outlineVariant,
+                                shape = CircleShape,
+                            ),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.accent_custom),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isCustom) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
 
                 if (isCustom) {
                     Spacer(Modifier.height(6.dp))
-                    Slider(
-                        value = selHue,
-                        onValueChange = { selHue = it },
-                        onValueChangeFinished = { onSelect("custom", selHue) },
-                        valueRange = 0f..360f,
-                    )
+                    // 彩虹渐变轨道：颜色即色相预览；Slider 自身轨道透明只留 thumb。
+                    // 定高 48dp：否则 Box wrap 到 4dp 轨道高，thumb 上下溢出压到文字
+                    Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .drawBehind {
+                                    drawRoundRect(
+                                        brush = Brush.horizontalGradient(
+                                            listOf(0f, 60f, 120f, 180f, 240f, 300f, 360f)
+                                                .map { Color.hsl(it, 0.62f, 0.45f) }
+                                        ),
+                                        cornerRadius = CornerRadius(size.height / 2f),
+                                    )
+                                },
+                        )
+                        Slider(
+                            value = selHue,
+                            onValueChange = { selHue = it },
+                            onValueChangeFinished = { onSelect("custom", selHue) },
+                            valueRange = 0f..360f,
+                            modifier = Modifier.matchParentSize(),
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.surface,
+                                activeTrackColor = Color.Transparent,
+                                inactiveTrackColor = Color.Transparent,
+                            ),
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
@@ -145,7 +200,7 @@ internal fun AccentDialog(
 private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
-            .size(30.dp)
+            .size(34.dp)
             .graphicsLayer {
                 scaleX = if (selected) 1.12f else 1f
                 scaleY = if (selected) 1.12f else 1f
@@ -166,7 +221,7 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
                 Icons.Filled.Check,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(16.dp),
             )
         }
     }
