@@ -16,15 +16,32 @@ android {
         versionName = "0.1.0"
     }
 
+    // puff 专属签名（独立 key，不与其他项目共享）。凭据在机器本地私有仓库
+    // ~/.config/puff-browser（gitea puff/config，见 AGENTS.md），可用 PUFF_CONFIG_DIR 重定向。
+    val puffConfigDir = System.getenv("PUFF_CONFIG_DIR")
+        ?: "${System.getProperty("user.home")}/.config/puff-browser"
+    val puffStoreFile = File(puffConfigDir, "keys/puff-debug.keystore")
+    val puffStorePassword = File(puffConfigDir, "keys/debug.password").readText().trim()
+
+    signingConfigs {
+        create("puff") {
+            storeFile = puffStoreFile
+            storePassword = puffStorePassword
+            keyAlias = "puff"
+            keyPassword = puffStorePassword
+        }
+    }
+
     buildTypes {
         debug {
             // 调试包独立包名 + 桌面名 dev 后缀，与正式版并存互不影响
             applicationIdSuffix = ".dev"
+            signingConfig = signingConfigs.getByName("puff")
         }
         release {
             isMinifyEnabled = false
-            // 个人应用：release 用 debug 签名，便于直接分发安装
-            signingConfig = signingConfigs.getByName("debug")
+            // 个人应用：release 同签名，便于直接分发安装
+            signingConfig = signingConfigs.getByName("puff")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
