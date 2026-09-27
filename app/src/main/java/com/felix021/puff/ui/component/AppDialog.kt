@@ -2,13 +2,11 @@ package com.felix021.puff.ui.component
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -16,20 +14,16 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 /**
  * 全应用统一对话框壳：大圆角 + surfaceContainerHigh 底 + 统一标题色。
@@ -93,11 +87,11 @@ fun AppDropdownMenu(
 private fun ScrollableDialogContent(content: @Composable () -> Unit) {
     val scroll = rememberScrollState()
     val maxH = (LocalConfiguration.current.screenHeightDp * 0.55f).dp
-    var viewportPx by remember { mutableIntStateOf(1) }
     val scrollable = scroll.maxValue > 0
-    // 滚动时加深、静止时保持淡显，让「还能滚」始终可感知
+    val barColor = MaterialTheme.colorScheme.onSurfaceVariant
+    // 滚动时加深、静止时保持半显，让「还能滚」始终可感知
     val barAlpha by animateFloatAsState(
-        targetValue = if (scroll.isScrollInProgress) 0.85f else 0.35f,
+        targetValue = if (scroll.isScrollInProgress) 0.85f else 0.5f,
         animationSpec = tween(300),
         label = "dialogScrollbar",
     )
@@ -105,7 +99,33 @@ private fun ScrollableDialogContent(content: @Composable () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .onSizeChanged { viewportPx = it.height },
+            // 滚动条画在 Box 上（drawBehind），不加子节点：子节点会参与 Box 的
+            // wrap 测量，曾把 text 槽撑满 AlertDialog 的 weight(1f) 份额，
+            // 在内容与按钮之间留出半屏空洞（e70a463 改 matchParentSize 后
+            // 子节点又拿不到尺寸、滚动条消失）。drawBehind 的 size 即视口，
+            // 读滚动状态自动重绘，两头的坑都绕开。
+            .drawBehind {
+                if (!scrollable || size.height <= 0f) return@drawBehind
+                val color = barColor
+                val trackH = size.height
+                val contentH = trackH + scroll.maxValue
+                val thumbH = (trackH * trackH / contentH).coerceAtLeast(24f)
+                val travel = (trackH - thumbH).coerceAtLeast(0f)
+                val thumbTop = scroll.value / scroll.maxValue.toFloat() * travel
+                val w = 4.dp.toPx()
+                drawRoundRect(
+                    color = color.copy(alpha = 0.15f * barAlpha),
+                    topLeft = Offset(size.width - w, 0f),
+                    size = Size(w, trackH),
+                    cornerRadius = CornerRadius(w / 2f),
+                )
+                drawRoundRect(
+                    color = color.copy(alpha = barAlpha),
+                    topLeft = Offset(size.width - w, thumbTop),
+                    size = Size(w, thumbH),
+                    cornerRadius = CornerRadius(w / 2f),
+                )
+            },
     ) {
         Column(
             Modifier
@@ -116,56 +136,5 @@ private fun ScrollableDialogContent(content: @Composable () -> Unit) {
         ) {
             content()
         }
-        if (scrollable) {
-            DialogScrollBar(
-                viewportPx = viewportPx,
-                maxValue = scroll.maxValue,
-                value = scroll.value,
-                alpha = barAlpha,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    // matchParentSize 不参与 Box 的 wrap 测量：Box 高恒等于内容高，
-                    // AlertDialog 的 weight 槽位随内容收缩。若用 fillMaxHeight，
-                    // 滚动条会按槽位份额（可达半屏）把 Box 撑满，内容下方留出大片空洞。
-                    .matchParentSize()
-                    .width(4.dp),
-            )
-        }
-    }
-}
-
-/**
- * 竖向滚动条：轨道 = 容器高（≈视口），滑块按 滑块高=视口²/内容总高、
- * 位置=value/maxValue 换算，与 [androidx.compose.foundation.ScrollState] 同像素坐标系。
- */
-@Composable
-private fun DialogScrollBar(
-    viewportPx: Int,
-    maxValue: Int,
-    value: Int,
-    alpha: Float,
-    modifier: Modifier = Modifier,
-) {
-    val color = MaterialTheme.colorScheme.onSurfaceVariant
-    Canvas(modifier.alpha(alpha)) {
-        val trackH = size.height
-        if (trackH <= 0f || viewportPx <= 0) return@Canvas
-        val contentH = viewportPx + maxValue
-        val thumbH = (viewportPx / contentH.toFloat() * trackH).coerceAtLeast(24f)
-        val travel = (trackH - thumbH).coerceAtLeast(0f)
-        val thumbTop = if (maxValue > 0) value / maxValue.toFloat() * travel else 0f
-        val w = size.width
-        drawRoundRect(
-            color = color.copy(alpha = 0.15f),
-            topLeft = Offset(0f, 0f),
-            size = Size(w, trackH),
-            cornerRadius = CornerRadius(w / 2f),
-        )
-        drawRoundRect(
-            color = color,
-            topLeft = Offset(0f, thumbTop),
-            size = Size(w, thumbH),
-            cornerRadius = CornerRadius(w / 2f),
-        )
     }
 }
