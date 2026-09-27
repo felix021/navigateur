@@ -963,10 +963,9 @@ private fun ZoomDialog(
                     "$zoomPercent%",
                     style = MaterialTheme.typography.headlineMedium,
                 )
-                androidx.compose.material3.Slider(
-                    value = zoomPercent.toFloat(),
-                    onValueChange = { onZoom(it.toInt().coerceIn(50, 200)) },
-                    valueRange = 50f..200f,
+                com.felix021.puff.ui.component.StepSlider(
+                    value = zoomPercent,
+                    onValueChange = onZoom,
                 )
                 Text(
                     stringResource(R.string.zoom_desc),

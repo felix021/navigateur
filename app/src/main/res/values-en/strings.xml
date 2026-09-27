@@ -77,6 +77,8 @@
     <string name="cert_valid_to">Valid until</string>
     <string name="zoom_title">Page zoom</string>
     <string name="zoom_desc">Scales the whole page (layout and images), applied live</string>
+    <string name="zoom_decrease">Zoom out</string>
+    <string name="zoom_increase">Zoom in</string>
     <string name="page_load_failed">Page failed to load</string>
     <string name="network_error">Network error</string>
 

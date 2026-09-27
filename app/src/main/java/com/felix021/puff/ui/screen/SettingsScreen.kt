@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -201,10 +200,9 @@ fun SettingsScreen(controller: BrowserController) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Slider(
-                    value = settings.pageZoomPercent.toFloat(),
-                    onValueChange = { update { s -> s.copy(pageZoomPercent = it.toInt().coerceIn(50, 200)) } },
-                    valueRange = 50f..200f,
+                com.felix021.puff.ui.component.StepSlider(
+                    value = settings.pageZoomPercent,
+                    onValueChange = { v -> update { s -> s.copy(pageZoomPercent = v) } },
                 )
             }
             }

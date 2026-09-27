@@ -55,6 +55,7 @@ import com.felix021.puff.R
 import com.felix021.puff.ui.ACCENTS
 import com.felix021.puff.ui.accentColorScheme
 import com.felix021.puff.ui.component.AppDialog
+import com.felix021.puff.ui.component.TriangleThumb
 
 /**
  * 主题色选择，交互对齐 feelime「键盘色调」色板：
@@ -243,52 +244,6 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
             )
         }
     }
-}
-
-/** 双三角 thumb：上倒三角、下正三角夹住轨道，中间露出轨道颜色；填充色=当前色相 */
-@Composable
-private fun TriangleThumb(color: Color) {
-    Box(
-        Modifier
-            .size(width = 28.dp, height = 40.dp)
-            .drawBehind {
-                val w = size.width
-                val capH = w * 0.46f
-                val r = w * 0.22f
-                drawPath(
-                    roundedTriangle(
-                        listOf(Offset(0f, 0f), Offset(w, 0f), Offset(w / 2f, capH)), r,
-                    ), color,
-                )
-                drawPath(
-                    roundedTriangle(
-                        listOf(
-                            Offset(0f, size.height), Offset(w, size.height),
-                            Offset(w / 2f, size.height - capH),
-                        ), r,
-                    ), color,
-                )
-            },
-    )
-}
-
-/** 顶点圆角化的三角形路径：每个顶点用二次贝塞尔切出圆弧 */
-private fun roundedTriangle(pts: List<Offset>, r: Float): Path {
-    val path = Path()
-    val n = pts.size
-    for (i in 0 until n) {
-        val prev = pts[(i + n - 1) % n]
-        val cur = pts[i]
-        val next = pts[(i + 1) % n]
-        val in1 = (prev - cur)
-        val in2 = (next - cur)
-        val p1 = cur + in1 * (r / in1.getDistance())
-        val p2 = cur + in2 * (r / in2.getDistance())
-        if (i == 0) path.moveTo(p1.x, p1.y) else path.lineTo(p1.x, p1.y)
-        path.quadraticBezierTo(cur.x, cur.y, p2.x, p2.y)
-    }
-    path.close()
-    return path
 }
 
 /** ARGB → "#RRGGBB" */
