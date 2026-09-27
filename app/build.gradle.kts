@@ -12,8 +12,8 @@ android {
         applicationId = "com.felix021.puff"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 10000
+        versionName = "1.0.0"
     }
 
     // puff 专属签名（独立 key，不与其他项目共享）。凭据在机器本地私有仓库
