@@ -20,8 +20,12 @@ import kotlin.math.exp
  * OnTouchListener 上转发到这里统一处理：
  * - 只有页面在顶部（子 View canScrollVertically(-1) == false）且向下拖过
  *   touchSlop 才接管，接管瞬间给 WebView 发 CANCEL，避免它继续跟手/闪 glow
- * - 位移做指数阻尼（越拉越紧），松手超过阈值触发 [onRefresh] 并停在停留高度，
- *   未达标弹回 0；刷新完成由 Compose 层调 [finishRefresh] 收起
+ * - 阻尼量做指数衰减（越拉越紧），松手超过阈值触发 [onRefresh] 并停在停留
+ *   高度，未达标弹回 0；刷新完成由 Compose 层调 [finishRefresh] 收起
+ *
+ * **内容不跟手**（M3 / Chrome / SwipeRefreshLayout 同款交互）：只有指示器
+ * 跟手。曾试过每帧改 WebView translationY 让页面跟着下移，结果 Chromium
+ * 每帧都要重新同步表面，真机上表现为页面疯狂闪烁（反复重绘），故废弃。
  *
  * 指示器动效不在本类画：dragOffsetPx / refreshing 以 Compose State 暴露，
  * 由 BrowserContent 的指示器 overlay 跟随绘制（主题色 / 形状与全应用一致）。
@@ -73,6 +77,7 @@ class PullToRefreshFrameLayout @JvmOverloads constructor(
         if (sendingCancel) return false
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                anim?.cancel()   // 弹回动画途中再拉：立刻止损，别让动画和拖拽抢位移
                 downY = ev.y
                 lastY = ev.y
                 rawDrag = 0f
@@ -122,8 +127,8 @@ class PullToRefreshFrameLayout @JvmOverloads constructor(
         maxDragPx * (1f - exp(-raw / (maxDragPx * 0.75f)))
 
     private fun applyOffset(px: Float) {
+        // 只写状态供指示器跟手；内容（WebView）保持不动，原因见类注释
         dragOffsetPx.value = px
-        for (i in 0 until childCount) getChildAt(i).translationY = px
     }
 
     private fun animateTo(target: Float) {
@@ -148,7 +153,7 @@ class PullToRefreshFrameLayout @JvmOverloads constructor(
         const val TRIGGER_DP = 64f
         /** 阻尼上限对应的位移 */
         const val MAX_DRAG_DP = 140f
-        /** 刷新中内容停留高度（指示器浮在其中的空隙里） */
+        /** 刷新中指示器的停留位移（悬在页面顶部转圈） */
         const val REST_DP = 56f
     }
 }

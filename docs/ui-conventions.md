@@ -27,3 +27,4 @@
 5. **wrap 容器里给「跟随容器」的元素用 matchParentSize 不参与测量**，这是特性也是坑：希望它撑大容器时它不会
 6. **Compose 的 AndroidView 触摸是 hit-test 后直喂目标 View**，父容器的 `onInterceptTouchEvent` 不在分发路径上——WebView 下拉刷新（`PullToRefreshFrameLayout`）因此不能走 intercept 机制，改为让容器直接充当 WebView 父层、给每个子 View 挂 `OnTouchListener` 转发处理；接管瞬间发给 WebView 的 CANCEL 会再进一次自己的 listener，需要标志位跳过
 7. **横屏全屏的系统栏在部分 ROM 上「重放不及时 / 首次 hide 被吞」**（小米平板：状态栏仍显示且 inset 报 0，内容第一行被盖）。解法：全屏状态用 `DisposableEffect` 挂 Lifecycle observer 在 `ON_RESUME` 重放，另挂 `ViewTreeObserver.OnWindowFocusChangeListener` 在窗口焦点回归时重放（Lifecycle 没有窗口焦点事件，ROM 恢复系统栏最常发生在焦点变化时）；hide 后延迟 600ms 实测 `decor.rootWindowInsets` 的 statusBars top/visible，仍可见就补一次 hide。真·强制显示状态栏的 ROM 无解，设置文案里给出「关闭横屏全屏」的出口
+8. **别用每帧改 `translationY` 的方式让 WebView「内容跟手」**：下拉刷新曾让页面跟着手指下移，结果 Chromium 每帧都要重新同步表面，真机上页面疯狂闪烁（反复重绘）。**最终方案内容保持不动、只有指示器跟手**（M3 / Chrome / SwipeRefreshLayout 同款交互）；位移量只写 Compose State 供指示器绘制，不碰 WebView 的任何 View 属性。另：弹回动画进行中再次下拉会让 ValueAnimator 和拖拽同时写位移，`ACTION_DOWN` 里要先 `anim?.cancel()`

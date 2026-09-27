@@ -558,7 +558,7 @@ private fun BrowserContent(controller: BrowserController, current: TabState?) {
         ptr.value?.let { PullIndicator(it) }
         // AndroidView 的 View 绘制在普通 Compose 内容之上，指示器需要显式提层
     }
-    // 页面 loading 结束 = 刷新完成：收起指示器与位移（未在刷新时调用无副作用）
+    // 页面 loading 结束 = 刷新完成：收起指示器（未在刷新时调用无副作用）
     LaunchedEffect(current?.loading) {
         if (current?.loading != true) ptr.value?.finishRefresh()
     }
@@ -581,7 +581,9 @@ private fun PullIndicator(ptr: PullToRefreshFrameLayout) {
     val density = LocalDensity.current
     val sizePx = with(density) { INDICATOR_SIZE.toPx() }
     val triggerPx = with(density) { PullToRefreshFrameLayout.TRIGGER_DP.dp.toPx() }
-    val minTop = with(density) { 10.dp.toPx() }
+    // minTop 取停留位移(REST_DP=56dp)的一半减半径：刷新停稳(56dp)时 yPx 恰好
+    // 连续过渡到 minTop，弹回/停稳不跳变；早期下拉时圆片从顶边淡入
+    val minTop = with(density) { (PullToRefreshFrameLayout.REST_DP / 2 - INDICATOR_SIZE.value / 2).dp.toPx() }
     val yPx = max(offsetPx / 2f - sizePx / 2f, minTop)
     val progress = (offsetPx / triggerPx).coerceIn(0f, 1f)
     val alpha = (offsetPx / (sizePx * 0.4f)).coerceIn(0f, 1f)
