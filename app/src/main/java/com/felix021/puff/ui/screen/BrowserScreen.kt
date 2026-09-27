@@ -5,7 +5,13 @@ import android.net.http.SslCertificate
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -55,8 +61,10 @@ import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.ZoomIn
 import com.felix021.puff.ui.component.AppDialog
+import com.felix021.puff.ui.component.PullToRefreshFrameLayout
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -86,7 +94,11 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -96,6 +108,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.platform.LocalFocusManager
+import kotlin.math.max
+import kotlin.math.roundToInt
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -103,6 +117,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
@@ -516,13 +531,19 @@ private fun SideToolbar(
 
 // ---------- 共享组件 ----------
 
-/** WebView 容器 + 起始页 + 错误页 */
+/** WebView 容器 + 起始页 + 错误页 + 下拉刷新 */
 @Composable
 private fun BrowserContent(controller: BrowserController, current: TabState?) {
+    val ptr = remember { mutableStateOf<PullToRefreshFrameLayout?>(null) }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
-                FrameLayout(ctx).also { controller.tabManager.webContainer = it }
+                // 容器本身就是下拉刷新手势层：给挂进来的 WebView 接 OnTouchListener
+                PullToRefreshFrameLayout(ctx).also { ptrView ->
+                    ptrView.onRefresh = { controller.tabManager.reloadCurrent() }
+                    controller.tabManager.webContainer = ptrView
+                    ptr.value = ptrView
+                }
             },
             update = { controller.tabManager.syncWebView() },
             modifier = Modifier.matchParentSize(),
@@ -533,6 +554,64 @@ private fun BrowserContent(controller: BrowserController, current: TabState?) {
         }
         current?.error?.let { err ->
             ErrorOverlay(err) { controller.tabManager.reloadCurrent() }
+        }
+        ptr.value?.let { PullIndicator(it) }
+        // AndroidView 的 View 绘制在普通 Compose 内容之上，指示器需要显式提层
+    }
+    // 页面 loading 结束 = 刷新完成：收起指示器与位移（未在刷新时调用无副作用）
+    LaunchedEffect(current?.loading) {
+        if (current?.loading != true) ptr.value?.finishRefresh()
+    }
+}
+
+private val INDICATOR_SIZE = 52.dp
+
+/** 下拉刷新指示器：跟随 [PullToRefreshFrameLayout] 的位移/刷新状态绘制动效 */
+@Composable
+private fun PullIndicator(ptr: PullToRefreshFrameLayout) {
+    val offsetPx by ptr.dragOffsetPx
+    val refreshing by ptr.refreshing
+    if (offsetPx <= 0f && !refreshing) return
+    val spin = rememberInfiniteTransition(label = "pullSpin")
+    val angle by spin.animateFloat(
+        0f, 360f,
+        infiniteRepeatable(tween(900, easing = LinearEasing)),
+        label = "pullAngle",
+    )
+    val density = LocalDensity.current
+    val sizePx = with(density) { INDICATOR_SIZE.toPx() }
+    val triggerPx = with(density) { PullToRefreshFrameLayout.TRIGGER_DP.dp.toPx() }
+    val minTop = with(density) { 10.dp.toPx() }
+    val yPx = max(offsetPx / 2f - sizePx / 2f, minTop)
+    val progress = (offsetPx / triggerPx).coerceIn(0f, 1f)
+    val alpha = (offsetPx / (sizePx * 0.4f)).coerceIn(0f, 1f)
+    val arcColor = MaterialTheme.colorScheme.primary
+    Box(Modifier.fillMaxSize().zIndex(3f), contentAlignment = Alignment.TopCenter) {
+        Box(
+            Modifier
+                .zIndex(3f)
+                .offset { IntOffset(0, yPx.roundToInt()) }
+                .graphicsLayer { this.alpha = alpha }
+                .size(INDICATOR_SIZE)
+                .shadow(6.dp, CircleShape)
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(Modifier.fillMaxSize().padding(11.dp)) {
+                val stroke = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                when {
+                    refreshing -> drawArc(   // 刷新中：开口圆环持续旋转
+                        color = arcColor,
+                        startAngle = angle - 90f, sweepAngle = 270f,
+                        useCenter = false, style = stroke,
+                    )
+                    progress > 0f -> drawArc(   // 跟手：弧长随下拉进度填充
+                        color = arcColor,
+                        startAngle = -90f, sweepAngle = 270f * progress,
+                        useCenter = false, style = stroke,
+                    )
+                }
+            }
         }
     }
 }

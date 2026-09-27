@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.FrameLayout
@@ -190,6 +191,8 @@ class TabManager(
     private fun createWebView(state: TabState): WebView {
         val wv = WebView(context)
         wv.tag = state.id
+        // 顶部下拉交给 PullToRefreshFrameLayout 拦截，关掉 overscroll 避免接管前闪光
+        wv.overScrollMode = View.OVER_SCROLL_NEVER
         WebViewFactory.configure(
             context, wv,
             container.settings.current, state.desktopMode,
