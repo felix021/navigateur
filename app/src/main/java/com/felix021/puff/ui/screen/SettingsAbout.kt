@@ -96,6 +96,7 @@ internal fun AboutSettingsPage(controller: BrowserController, onBack: () -> Unit
             )
             Box(
                 Modifier
+                    .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 2.dp)
                     .background(flashBg, MaterialTheme.shapes.small)
                     .clickable {

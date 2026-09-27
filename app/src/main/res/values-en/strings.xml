@@ -252,6 +252,10 @@
     <string name="entry_about">About</string>
     <string name="about_version">Version %1$s</string>
     <string name="easter_egg_unlocked">Hidden feature enabled</string>
+    <string name="notif_rationale_title">Allow notifications</string>
+    <string name="notif_rationale_body">Download progress and completion appear as notifications. Granting the notification permission enables these reminders; downloads still work without it, just without reminders.</string>
+    <string name="notif_allow">Allow</string>
+    <string name="notif_later">Not now</string>
     <string name="about_github">GitHub repository</string>
     <string name="about_privacy_title">Privacy</string>
     <string name="about_privacy_body">All data stays on this device: settings, bookmarks and history are stored locally, saved passwords are encrypted with the Android Keystore. No accounts, no analytics, no uploads. The network is used only for: browsing pages, updating ad-block rules (EasyList) online, and downloading proxy rule lists you configure.</string>

@@ -252,6 +252,10 @@
     <string name="entry_about">关于</string>
     <string name="about_version">版本 %1$s</string>
     <string name="easter_egg_unlocked">已开启隐藏功能</string>
+    <string name="notif_rationale_title">允许通知</string>
+    <string name="notif_rationale_body">下载时可以在通知栏看到进度和完成提醒。需要通知权限才能显示这些提醒；不允许也可以正常下载，只是不会弹提醒。</string>
+    <string name="notif_allow">允许</string>
+    <string name="notif_later">暂不</string>
     <string name="about_github">GitHub 仓库</string>
     <string name="about_privacy_title">隐私说明</string>
     <string name="about_privacy_body">所有数据仅保存在本机：设置、书签、浏览历史存于本地，已保存密码经 Android Keystore 加密。应用无账号、无统计、无任何上传。联网仅发生在：浏览网页本身、在线更新广告拦截规则（EasyList）、下载你配置的代理规则列表。</string>

@@ -1,5 +1,6 @@
 package com.felix021.puff.util
 
+import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
@@ -12,6 +13,18 @@ import com.felix021.puff.R
 object Downloader {
 
     fun start(
+        context: Context,
+        url: String,
+        userAgent: String?,
+        contentDisposition: String?,
+        mimeType: String?,
+    ) {
+        // Android 13+ 首次下载时按需申请通知权限（先解释再弹系统授权）
+        val activity = context as? Activity
+        NotifPermission.ensure(activity) { download(context, url, userAgent, contentDisposition, mimeType) }
+    }
+
+    private fun download(
         context: Context,
         url: String,
         userAgent: String?,

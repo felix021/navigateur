@@ -9,30 +9,19 @@ import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.felix021.puff.ui.AppRoot
 import com.felix021.puff.ui.BrowserController
+import com.felix021.puff.util.NotifPermission
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var controller: BrowserController
         private set
 
-    private val notifPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Android 13+ 请求通知权限（下载进度/完成通知）
-        if (Build.VERSION.SDK_INT >= 33 &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
         // 允许内容延伸到打孔屏 cutout 区（否则横屏全屏时系统会加白边/黑边 letterbox），
         // 安全区避让由 Compose displayCutout insets 处理
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -42,6 +31,18 @@ class MainActivity : AppCompatActivity() {
         controller = BrowserController(this)
         applyDebugIntent(intent)
         setContent { AppRoot(controller) }
+    }
+
+    /** 通知权限的系统授权结果转发给 gate（首次下载时按需申请） */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 7001) {
+            NotifPermission.handleResult(requestCode, grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
+        }
     }
 
     override fun onNewIntent(intent: android.content.Intent) {
