@@ -123,9 +123,9 @@ internal fun AboutSettingsPage(controller: BrowserController, onBack: () -> Unit
             }
             SettingItem(
                 title = stringResource(R.string.about_github),
-                value = "github.com/felix021/puff-browser",
+                value = "github.com/puff-browser/puff-browser",
                 entryId = "about.github",
-            ) { openUrl(context, "https://github.com/felix021/puff-browser") }
+            ) { openUrl(context, "https://github.com/puff-browser/puff-browser") }
 
             SectionHeader(stringResource(R.string.about_privacy_title), entryId = "about.privacy")
             Text(

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Puff 浏览器（Android WebView 壳）：标签页/书签/历史/密码、规则代理与 Shadowsocks、广告拦截、7 语种设置页。品牌 Puff，包名 `com.felix021.puff`（debug 加 `.dev` 后缀）。仓库 `felix021/puff-browser`，本地目录习惯叫 `navigateur`。
+Puff 浏览器（Android WebView 壳）：标签页/书签/历史/密码、规则代理与 Shadowsocks、广告拦截、7 语种设置页。品牌 Puff，包名 `com.felix021.puff`（debug 加 `.dev` 后缀）。仓库 `puff-browser/puff-browser`（org），项目主页 <https://puff-browser.github.io>，本地目录习惯叫 `navigateur`。
 
 本仓库按 **AI native** 方式组织：`docs/` 分主题记录重要信息，**改动涉及某主题时同步更新对应文档**；本文件是索引入口。
 

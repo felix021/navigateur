@@ -22,7 +22,7 @@
 
 ## 分发
 
-GitHub 仓库 `felix021/puff-browser`（公开），release APK 直接分发。发布前自查：无硬编码凭据/私有主机名，字符串资源完整。
+GitHub 仓库 `puff-browser/puff-browser`（公开，org 仓），release APK 直接分发；项目主页 <https://puff-browser.github.io>（仓库 `puff-browser/puff-browser.github.io`）提供 APK 下载与镜像加速入口。发布前自查：无硬编码凭据/私有主机名，字符串资源完整。
 
 ## 发版流程
 
