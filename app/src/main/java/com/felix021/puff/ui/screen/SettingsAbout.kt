@@ -3,7 +3,12 @@ package com.felix021.puff.ui.screen
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +24,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import com.felix021.puff.R
 import com.felix021.puff.ui.BrowserController
 
@@ -67,12 +80,46 @@ internal fun AboutSettingsPage(controller: BrowserController, onBack: () -> Unit
                 Modifier.padding(start = 16.dp, top = 20.dp, end = 16.dp),
                 style = MaterialTheme.typography.headlineSmall,
             )
-            Text(
-                stringResource(R.string.about_version, version),
-                Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // 版本号彩蛋：300ms 内连点 6 次解锁隐藏功能（SS 出口）。
+            // 每次点击背景短暂高亮，给「按到了」的即时反馈
+            var tapCount by remember { mutableIntStateOf(0) }
+            var lastTapAt by remember { mutableLongStateOf(0L) }
+            var flash by remember { mutableStateOf(false) }
+            LaunchedEffect(flash) {
+                if (flash) { delay(180); flash = false }
+            }
+            val flashBg by animateColorAsState(
+                targetValue = if (flash) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                else Color.Transparent,
+                animationSpec = tween(90),
+                label = "versionFlash",
             )
+            Box(
+                Modifier
+                    .padding(horizontal = 16.dp, vertical = 2.dp)
+                    .background(flashBg, MaterialTheme.shapes.small)
+                    .clickable {
+                        flash = true
+                        val now = System.currentTimeMillis()
+                        tapCount = if (now - lastTapAt < 300) tapCount + 1 else 1
+                        lastTapAt = now
+                        if (tapCount >= 6) {
+                            tapCount = 0
+                            controller.container.settings.update { it.copy(unlockSs = true) }
+                            Toast.makeText(
+                                context, context.getString(R.string.easter_egg_unlocked),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    stringResource(R.string.about_version, version),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             SettingItem(
                 title = stringResource(R.string.about_github),
                 value = "github.com/felix021/puff-browser",

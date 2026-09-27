@@ -47,6 +47,8 @@ data class BrowserSettings(
     val devTools: Boolean = false,
     /** 规则代理（JSON，结构见 ProxySettings） */
     val proxyJson: String = "",
+    /** 彩蛋解锁的隐藏功能（当前含代理出口 SS 类型），持久化 */
+    val unlockSs: Boolean = false,
 )
 
 class SettingsRepository(context: Context) {
@@ -96,6 +98,7 @@ class SettingsRepository(context: Context) {
         remoteDebug = prefs.getBoolean(KEY_REMOTE_DEBUG, false),
         devTools = prefs.getBoolean(KEY_DEVTOOLS, false),
         proxyJson = prefs.getString(KEY_PROXY, "") ?: "",
+        unlockSs = prefs.getBoolean(KEY_UNLOCK_SS, false),
         customUas = readCustomUas(),
     ).let { migrateLegacyCustomUa(it) }
 
@@ -144,6 +147,7 @@ class SettingsRepository(context: Context) {
             .putBoolean(KEY_REMOTE_DEBUG, s.remoteDebug)
             .putBoolean(KEY_DEVTOOLS, s.devTools)
             .putString(KEY_PROXY, s.proxyJson)
+            .putBoolean(KEY_UNLOCK_SS, s.unlockSs)
             .commit() // commit 而非 apply：StringSet/apply 在部分 ROM 上不落盘，设置丢失
     }
 
@@ -185,5 +189,6 @@ class SettingsRepository(context: Context) {
         const val KEY_REMOTE_DEBUG = "remote_debug"
         const val KEY_DEVTOOLS = "devtools"
         const val KEY_PROXY = "proxy_json"
+        const val KEY_UNLOCK_SS = "unlock_ss"
     }
 }

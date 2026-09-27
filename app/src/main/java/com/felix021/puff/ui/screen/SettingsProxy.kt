@@ -118,6 +118,7 @@ internal fun ProxySettingsPage(controller: BrowserController, onBack: () -> Unit
     if (showProfiles) {
         ProxyProfilesDialog(
             proxy = proxy,
+            unlockSs = settings.unlockSs,
             onSave = { newList -> save { it.copy(profiles = newList) } },
             onDismiss = { showProfiles = false },
         )
@@ -234,6 +235,7 @@ private fun ProxyModeDialog(
 @Composable
 private fun ProxyProfilesDialog(
     proxy: ProxySettings,
+    unlockSs: Boolean,
     onSave: (List<ProxyProfile>) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -283,7 +285,11 @@ private fun ProxyProfilesDialog(
                     )
                     Spacer(Modifier.padding(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        listOf("HTTP", "SOCKS5", "SS").forEach { t ->
+                        val types = buildList {
+                            add("HTTP"); add("SOCKS5")
+                            if (unlockSs || type == "SS") add("SS")
+                        }
+                        types.forEach { t ->
                             Row(
                                 Modifier.clickable { type = t }.padding(horizontal = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
