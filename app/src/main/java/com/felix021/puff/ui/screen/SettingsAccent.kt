@@ -70,8 +70,10 @@ internal fun AccentDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // swatch 行：6 预设 + 自定义
+                // 7 个圆点必须放进对话框 248dp 内容宽：30dp + 6dp 间距 = 246dp。
+                // 之前的 34dp + 10dp = 298dp 溢出，末尾的圆点被压缩成竖条。
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ACCENTS.forEach { opt ->
@@ -143,7 +145,7 @@ internal fun AccentDialog(
 private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
-            .size(34.dp)
+            .size(30.dp)
             .graphicsLayer {
                 scaleX = if (selected) 1.12f else 1f
                 scaleY = if (selected) 1.12f else 1f
@@ -164,7 +166,7 @@ private fun Swatch(color: Color, selected: Boolean, onClick: () -> Unit) {
                 Icons.Filled.Check,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
             )
         }
     }
