@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -125,8 +124,11 @@ private fun ScrollableDialogContent(content: @Composable () -> Unit) {
                 alpha = barAlpha,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .width(4.dp)
-                    .fillMaxHeight(),
+                    // matchParentSize 不参与 Box 的 wrap 测量：Box 高恒等于内容高，
+                    // AlertDialog 的 weight 槽位随内容收缩。若用 fillMaxHeight，
+                    // 滚动条会按槽位份额（可达半屏）把 Box 撑满，内容下方留出大片空洞。
+                    .matchParentSize()
+                    .width(4.dp),
             )
         }
     }
